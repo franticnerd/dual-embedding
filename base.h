@@ -31,9 +31,10 @@ class Model {
   public:
     Model() {}
     virtual ~Model() {}
-    virtual void Train(const Graph& graph) = 0;
     virtual double Evaluate(int x, int y) = 0;
 };
 
 void ReadDataset(const std::string& filename, Graph* graph);
+Model* GetFiniteEmbedding(const Graph& graph, int dimension);
+void SampleNegativeGraph(const Graph& positive, Graph* negative);
 
