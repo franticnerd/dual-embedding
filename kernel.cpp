@@ -2,11 +2,6 @@
 #include "utility.h"
 #include "svm.h"
 #include <vector>
-#include <random>
-
-namespace {
-    std::mt19937 gen;
-}   // anonymous namespace
 
 #define EPOCHS 10
 
@@ -33,9 +28,9 @@ void KernelEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         label.push_back(-1);
     }
     local.resize(instance.size());
-    for (int i = 0; i < instance.size(); ++i) {
+    for (int i = 0; i < (int)instance.size(); ++i) {
         local[i].resize(instance.size());
-        for (int j = 0; j < instance.size(); ++j)
+        for (int j = 0; j < (int)instance.size(); ++j)
             local[i][j] = kernel[instance[i]][instance[j]];
     }
 
@@ -43,12 +38,12 @@ void KernelEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
     for (int i = 0; i < size_; ++i)
         if (i != x) {
             double val = 0;
-            for (int j = 0; j < instance.size(); ++j)
+            for (int j = 0; j < (int)instance.size(); ++j)
                 val += kernel[instance[j]][i] * coeff[x][j];
             kernel[x][i] = kernel[i][x] = val;
         }
     double val = 0;
-    for (int i = 0; i < instance.size(); ++i)
+    for (int i = 0; i < (int)instance.size(); ++i)
         val += kernel[x][instance[i]] * coeff[x][i];
     kernel[x][x] = val;
 }
