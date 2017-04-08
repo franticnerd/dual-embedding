@@ -8,11 +8,12 @@ namespace {
     std::mt19937 gen;
 }   // anonymous namespace
 
-#define EPOCS 10
+#define EPOCHS 10
 
 class FiniteEmbedding : public Model {
     int size_, dim_;
     std::vector<std::vector<double>> embedding;
+    std::vector<std::vector<double>> coeff;
 
     void UpdateEmbedding(const Graph& positive, const Graph& negative, int x);
   public:
@@ -31,12 +32,11 @@ void FiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         feature.push_back(&embedding[i]);
         label.push_back(-1);
     }
-    std::vector<double> coeff;
-    LinearSVM(feature, label, 1, 1, &coeff);
+    LinearSVM(feature, label, 1, 1, &coeff[x]);
     for (int i = 0; i < dim_; ++i) {
         double val = 0;
         for (int j = 0; j < (int)feature.size(); ++j)
-            val += coeff[j] * feature[j]->at(i);
+            val += coeff[x][j] * feature[j]->at(i);
         embedding[x][i] = val;
     }
 }
@@ -51,8 +51,13 @@ FiniteEmbedding::FiniteEmbedding(const Graph& graph, int dimension) :
     for (int i = 0; i < graph.size; ++i)
         for (int j = 0; j < dimension; ++j)
             embedding[i][j] = dist(gen);
+
     Graph negative(graph.size);
     SampleNegativeGraph(graph, &negative);
+
+    coeff.resize(graph.size);
+    for (int i = 0; i < graph.size; ++i)
+        coeff[i].resize(graph.edge[i].size() + negative.edge[i].size());
 
     std::vector<int> order(graph.size);
     for (int j = 0; j < graph.size; ++j)

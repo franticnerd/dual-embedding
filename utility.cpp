@@ -3,8 +3,11 @@
 #include <random>
 #include <algorithm>
 
+namespace {
+    std::mt19937 gen(910109);
+}   // anonymous namespace
+
 void RandomPermutation(std::vector<int>* vec) {
-    std::mt19937 gen;
     std::uniform_int_distribution<int> dist(0, vec->size() - 1);
     for (int i = 0; i < (int)vec->size(); ++i) {
         int t = dist(gen);
