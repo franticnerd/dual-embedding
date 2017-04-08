@@ -36,5 +36,6 @@ class Model {
 
 void ReadDataset(const std::string& filename, Graph* graph);
 Model* GetFiniteEmbedding(const Graph& graph, int dimension);
+Model* GetKernelEmbedding(const Graph& graph);
 void SampleNegativeGraph(const Graph& positive, Graph* negative);
 

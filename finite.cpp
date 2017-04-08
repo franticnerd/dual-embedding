@@ -45,27 +45,27 @@ FiniteEmbedding::FiniteEmbedding(const Graph& graph, int dimension) :
     size_(graph.size),
     dim_(dimension) {
     std::uniform_real_distribution<double> dist(-1, 1);
-    embedding.resize(graph.size);
-    for (int i = 0; i < graph.size; ++i)
-        embedding[i].resize(dimension);
-    for (int i = 0; i < graph.size; ++i)
-        for (int j = 0; j < dimension; ++j)
+    embedding.resize(size_);
+    for (int i = 0; i < size_; ++i)
+        embedding[i].resize(dim_);
+    for (int i = 0; i < size_; ++i)
+        for (int j = 0; j < dim_; ++j)
             embedding[i][j] = dist(gen);
 
-    Graph negative(graph.size);
+    Graph negative(size_);
     SampleNegativeGraph(graph, &negative);
 
-    coeff.resize(graph.size);
-    for (int i = 0; i < graph.size; ++i)
+    coeff.resize(size_);
+    for (int i = 0; i < size_; ++i)
         coeff[i].resize(graph.edge[i].size() + negative.edge[i].size());
 
-    std::vector<int> order(graph.size);
-    for (int j = 0; j < graph.size; ++j)
+    std::vector<int> order(size_);
+    for (int j = 0; j < size_; ++j)
         order[j] = j;
-    for (int i = 0; i < EPOCS; ++i) {
+    for (int i = 0; i < EPOCHS; ++i) {
         RandomPermutation(&order);
-        for (int j = 0; j < graph.size; ++j)
-            UpdateEmbedding(graph, negative, order[j]);
+        for (int j : order)
+            UpdateEmbedding(graph, negative, j);
     }
 }
 
