@@ -14,7 +14,7 @@ void LinearSVM(const std::vector<std::vector<double>*>& feature, const std::vect
     for (int i = 0; i < coeff->size(); ++i)
         if (coeff->at(i) > 0)
         for (int j = 0; j < dim; ++j)
-            w[j] += feature[i]->at(j) * coeff->at(i);
+            w[j] += label[i] * feature[i]->at(j) * coeff->at(i);
     std::vector<double> Q(coeff->size(), 0);
     for (int i = 0; i < coeff->size(); ++i)
         for (int j = 0; j < dim; ++j)
