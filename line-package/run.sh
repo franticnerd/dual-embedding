@@ -1,0 +1,1 @@
+./hin2vec -node "/Users/chao/data/projects/dual-embedding/tweets-dev/graph/node-w.txt" -link "/Users/chao/data/projects/dual-embedding/tweets-dev/graph/edge-ww.txt" -output "/Users/chao/data/projects/dual-embedding/tweets-dev/graph/vec.txt" -binary 0 -size 10 -negative 1 -samples 10 -iters 20 -threads 1
