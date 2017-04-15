@@ -2,6 +2,7 @@
 #include "utility.h"
 #include <vector>   
 #include <algorithm>
+#include <iostream>
 
 #define LINEAR_EPOCHS 2
 #define KERNEL_EPOCHS 10
@@ -9,6 +10,7 @@
 // Dual Coordinate Descent
 void LinearSVM(const std::vector<std::vector<double>*>& feature, const std::vector<int>& label,
     double pos_penalty, double neg_penalty, std::vector<double>* coeff) {
+    if (feature.size() == 0) return;
     int dim = feature[0]->size();
     std::vector<double> w(dim, 0);
     for (int i = 0; i < (int)coeff->size(); ++i)

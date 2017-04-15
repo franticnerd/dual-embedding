@@ -51,8 +51,20 @@ void SparseEmbeddingTest() {
     assert(model->Evaluate(1, 2) > model->Evaluate(1, 4));
 }
 
+void CommonNeighborTest() {
+    Graph graph(7);
+    MakeGraph(&graph);
+    Graph negative(7);
+    SampleNegativeGraph(graph, &negative);
+    std::unique_ptr<Model> model(GetCommonNeighbor(graph));
+    std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
+    assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));
+    assert(model->Evaluate(1, 2) > model->Evaluate(1, 5));
+}
+
 void EmbeddingTest() {
     FiniteEmbeddingTest();
     KernelEmbeddingTest();
     SparseEmbeddingTest();
+    CommonNeighborTest();
 }

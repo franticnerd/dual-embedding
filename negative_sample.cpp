@@ -12,9 +12,10 @@ void SampleNegativeGraph(const Graph& positive, Graph* negative) {
     std::vector<double> rate;
     for (int i = 0; i < positive.size; ++i)
         rate.push_back(positive.edge[i].size());
+    Prop_Sampler sampler(rate);
     for (int i = 0; i < positive.size; ++i)
         for (int j = 0; j < (int)positive.edge[i].size() * NEGATIVE_RATIO; ++j) {
-            int target = prop_sample(rate);
+            int target = sampler.GetSample();
             if (target != i) 
                 negative->AddEdge(i, target);
         }

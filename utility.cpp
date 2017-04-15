@@ -76,6 +76,20 @@ double EvaluateMAP(const std::vector<double>& positive, const std::vector<double
     return ave_p;
 }
 
+Prop_Sampler::Prop_Sampler(const std::vector<double>& x) {
+    double sum = 0;
+    for (double item : x) {
+        sum += item;
+        ps.push_back(sum);
+    }
+}
+
+int Prop_Sampler::GetSample() {
+    std::uniform_real_distribution<double> dist(0, 1);
+    double val = ps.back() * dist(gen);
+    return std::lower_bound(ps.begin(), ps.end(), val) - ps.begin();
+}
+
 int prop_sample(const std::vector<double>& x) {
     std::uniform_real_distribution<double> dist(0, 1);
     double sum = 0;

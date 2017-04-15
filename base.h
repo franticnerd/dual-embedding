@@ -33,7 +33,7 @@ class Model {
     virtual double Evaluate(int x, int y) = 0;
 };
 
-void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* graph);
+void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* train, Graph* test);
 Model* GetFiniteEmbedding(const Graph& postive, const Graph& negative, int dimension);
 Model* GetKernelEmbedding(const Graph& postive, const Graph& negative);
 Model* GetSparseEmbedding(const Graph& postive, const Graph& negative);
