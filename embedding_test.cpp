@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <memory>
+#include <iostream>
 
 void MakeGraph(Graph* graph) {
     *graph = Graph(7);
@@ -19,7 +20,10 @@ void MakeGraph(Graph* graph) {
 void FiniteEmbeddingTest() {
     Graph graph(7);
     MakeGraph(&graph);
-    std::unique_ptr<Model> model(GetFiniteEmbedding(graph, 5));
+    Graph negative(7);
+    SampleNegativeGraph(graph, &negative);
+    std::unique_ptr<Model> model(GetFiniteEmbedding(graph, negative, 5));
+    std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));
     assert(model->Evaluate(1, 2) > model->Evaluate(1, 5));
 }   
@@ -27,7 +31,10 @@ void FiniteEmbeddingTest() {
 void KernelEmbeddingTest() {
     Graph graph(7);
     MakeGraph(&graph);
-    std::unique_ptr<Model> model(GetKernelEmbedding(graph));
+    Graph negative(7);
+    SampleNegativeGraph(graph, &negative);
+    std::unique_ptr<Model> model(GetKernelEmbedding(graph, negative));
+    std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));
     assert(model->Evaluate(1, 2) > model->Evaluate(1, 5));
 }
@@ -35,9 +42,13 @@ void KernelEmbeddingTest() {
 void SparseEmbeddingTest() {
     Graph graph(7);
     MakeGraph(&graph);
-    std::unique_ptr<Model> model(GetSparseEmbedding(graph));
+    Graph negative(7);
+    //SampleNegativeGraph(graph, &negative);
+    std::unique_ptr<Model> model(GetSparseEmbedding(graph, negative));
+    std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << " " << model->Evaluate(1, 4) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));
     assert(model->Evaluate(1, 2) > model->Evaluate(1, 5));
+    assert(model->Evaluate(1, 2) > model->Evaluate(1, 4));
 }
 
 void EmbeddingTest() {

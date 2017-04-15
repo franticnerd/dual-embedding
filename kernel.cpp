@@ -12,7 +12,7 @@ class KernelEmbedding : public Model {
 
     void UpdateEmbedding(const Graph& positive, const Graph& negative, int x);
 public:
-    KernelEmbedding(const Graph& graph);
+    KernelEmbedding(const Graph& graph, const Graph& negative);
     double Evaluate(int x, int y);
 };
 
@@ -34,7 +34,7 @@ void KernelEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
             local[i][j] = kernel[instance[i]][instance[j]];
     }
 
-    KernelSVM(local, label, 1, 1, &coeff[x]);
+    KernelSVM(local, label, 1, 0.2, &coeff[x]);
     for (int i = 0; i < size_; ++i)
         if (i != x) {
             double val = 0;
@@ -48,7 +48,7 @@ void KernelEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
     kernel[x][x] = val;
 }
 
-KernelEmbedding::KernelEmbedding(const Graph& graph) :
+KernelEmbedding::KernelEmbedding(const Graph& graph, const Graph& negative) :
     size_(graph.size) {
     kernel.resize(size_);
     for (int i = 0; i < size_; ++i)
@@ -58,9 +58,6 @@ KernelEmbedding::KernelEmbedding(const Graph& graph) :
             kernel[i][x] = 1;
         kernel[i][i] = graph.edge[i].size();
     }
-
-    Graph negative(size_);
-    SampleNegativeGraph(graph, &negative);
 
     coeff.resize(size_);
     for (int i = 0; i < size_; ++i)
@@ -80,6 +77,6 @@ double KernelEmbedding::Evaluate(int x, int y) {
     return kernel[x][y];
 }
 
-Model* GetKernelEmbedding(const Graph& graph) {
-    return new KernelEmbedding(graph);
+Model* GetKernelEmbedding(const Graph& graph, const Graph& negative) {
+    return new KernelEmbedding(graph, negative);
 }

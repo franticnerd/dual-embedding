@@ -2,6 +2,7 @@
 #include "svm.h"
 #include <vector>
 #include <cassert>
+#include <iostream>
 
 std::vector<double> MakeFeature(double a, double b, double c) {
     std::vector<double> vec;
@@ -33,10 +34,9 @@ void LinearSVMTest() {
         feature_ptr_vec.push_back(&feature_vec[i]);     
     std::vector<double> coeff(4, 0);
     LinearSVM(feature_ptr_vec, label, 1000, 1000, &coeff);
-    assert(fabs(coeff[0] - 0.5) < 1e-3);
-    assert(fabs(coeff[0]) < 1e-3);
-    assert(fabs(coeff[0] + 0.5) < 1e-3);
-    assert(fabs(coeff[0]) < 1e-3);
+    assert(fabs(coeff[0] - coeff[2] - 0.3333) < 1e-3);
+    assert(fabs(coeff[1]) < 1e-3);
+    assert(fabs(coeff[3]) < 1e-3);
 }
 
 void KernelSVMTest() {
@@ -49,10 +49,9 @@ void KernelSVMTest() {
 
     std::vector<double> coeff(4, 0);
     KernelSVM(kernel, label, 1000, 1000, &coeff);
-    assert(fabs(coeff[0] - 0.5) < 1e-3);
-    assert(fabs(coeff[0]) < 1e-3);
-    assert(fabs(coeff[0] + 0.5) < 1e-3);
-    assert(fabs(coeff[0]) < 1e-3);
+    assert(fabs(coeff[0] - coeff[2] - 0.3333) < 1e-3);
+    assert(fabs(coeff[1]) < 1e-3);
+    assert(fabs(coeff[3]) < 1e-3);
 }
 
 void SVMTest() {

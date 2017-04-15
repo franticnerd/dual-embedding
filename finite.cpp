@@ -17,7 +17,7 @@ class FiniteEmbedding : public Model {
 
     void UpdateEmbedding(const Graph& positive, const Graph& negative, int x);
   public:
-    FiniteEmbedding(const Graph& graph, int dimension);
+    FiniteEmbedding(const Graph& graph, const Graph& negative, int dimension);
     double Evaluate(int x, int y);
 };
 
@@ -32,7 +32,7 @@ void FiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         feature.push_back(&embedding[i]);
         label.push_back(-1);
     }
-    LinearSVM(feature, label, 1, 1, &coeff[x]);
+    LinearSVM(feature, label, 1, 0.2, &coeff[x]);
     for (int i = 0; i < dim_; ++i) {
         double val = 0;
         for (int j = 0; j < (int)feature.size(); ++j)
@@ -41,7 +41,7 @@ void FiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
     }
 }
 
-FiniteEmbedding::FiniteEmbedding(const Graph& graph, int dimension) :
+FiniteEmbedding::FiniteEmbedding(const Graph& graph, const Graph& negative, int dimension) :
     size_(graph.size),
     dim_(dimension) {
     std::uniform_real_distribution<double> dist(-1, 1);
@@ -51,9 +51,6 @@ FiniteEmbedding::FiniteEmbedding(const Graph& graph, int dimension) :
     for (int i = 0; i < size_; ++i)
         for (int j = 0; j < dim_; ++j)
             embedding[i][j] = dist(gen);
-
-    Graph negative(size_);
-    SampleNegativeGraph(graph, &negative);
 
     coeff.resize(size_);
     for (int i = 0; i < size_; ++i)
@@ -73,6 +70,6 @@ double FiniteEmbedding::Evaluate(int x, int y) {
     return InnerProduct(embedding[x], embedding[y]);
 }
 
-Model* GetFiniteEmbedding(const Graph& graph, int dimension) {
-    return new FiniteEmbedding(graph, dimension);
+Model* GetFiniteEmbedding(const Graph& graph, const Graph& negative, int dimension) {
+    return new FiniteEmbedding(graph, negative, dimension);
 }
