@@ -19,7 +19,6 @@ struct Graph {
         edge[x].push_back(y);
         edge[y].push_back(x);
     }
-    const std::vector<int>& Adjacent(int x) { return edge[x]; }
 };
 
 struct Edge {
@@ -34,9 +33,11 @@ class Model {
     virtual double Evaluate(int x, int y) = 0;
 };
 
-void ReadDataset(const std::string& filename, Graph* graph);
+void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* graph);
 Model* GetFiniteEmbedding(const Graph& graph, int dimension);
 Model* GetKernelEmbedding(const Graph& graph);
+Model* GetSparseEmbedding(const Graph& graph);
 void SampleNegativeGraph(const Graph& positive, Graph* negative);
 void SampleLocalNegativeGraph(const Graph& positive, Graph* negative);
 
+Model* GetCommonNeighbor(const Graph& base);

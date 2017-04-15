@@ -29,7 +29,7 @@ void LinearSVMTest() {
     feature_vec.push_back(MakeFeature(-2, -2, -3)); label.push_back(-1);
 
     std::vector<std::vector<double>*> feature_ptr_vec;
-    for (int i = 0; i < label.size(); ++i)
+    for (int i = 0; i < (int)label.size(); ++i)
         feature_ptr_vec.push_back(&feature_vec[i]);     
     std::vector<double> coeff(4, 0);
     LinearSVM(feature_ptr_vec, label, 1000, 1000, &coeff);

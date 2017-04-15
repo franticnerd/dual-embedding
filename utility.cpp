@@ -32,7 +32,7 @@ double EvaluateF1(const std::vector<double>& positive, const std::vector<double>
         combine.push_back(p);
     sort(combine.begin(), combine.end());
     double cutoff, eps = 1e-4;
-    for (int i = combine.size() - 1; i >= negative.size(); --i)
+    for (int i = combine.size() - 1; i >= (int)negative.size(); --i)
         if (combine[i] >= combine[0] + eps)
             cutoff = combine[i];
 
@@ -74,4 +74,18 @@ double EvaluateMAP(const std::vector<double>& positive, const std::vector<double
     }
     ave_p += (double)span_pos / (double)positive.size() * positive.size() / (double)(positive.size() + negative.size());
     return ave_p;
+}
+
+int prop_sample(const std::vector<double>& x) {
+    std::uniform_real_distribution<double> dist(0, 1);
+    double sum = 0;
+    for (int i = 0; i < (int)x.size(); ++i)
+        sum += x[i];
+    sum *= dist(gen);
+    for (int i = 0; i < (int)x.size(); ++i)
+        if (sum < x[i])
+            return i;
+        else
+            sum -= x[i];
+    return 0;
 }
