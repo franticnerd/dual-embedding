@@ -22,8 +22,8 @@ void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph
     double weight;
     //*train = Graph(index);
     //*test = Graph(index);
-    *train = Graph(1000);
-    *test = Graph(1000);
+    *train = Graph(3000);
+    *test = Graph(3000);
 
     int e_index = 0;
     
@@ -34,11 +34,13 @@ void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph
         is >> weight;
         int w1_index = index_map[std::string(w1)];
         int w2_index = index_map[std::string(w2)];
-        if (w1_index < w2_index && weight > 3.5 && w2_index < 1000) {
+        if (w1_index < w2_index && w2_index < 3000) {
             if (((++e_index) % 4) != 0)
                 train->AddEdge(w1_index, w2_index);
             else
                 test->AddEdge(w1_index, w2_index);
         }
     }
+
+    std::cout << "Total Edges: " << e_index << "\n";
 }

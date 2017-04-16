@@ -37,7 +37,8 @@ void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph
 Model* GetFiniteEmbedding(const Graph& postive, const Graph& negative, int dimension);
 Model* GetKernelEmbedding(const Graph& postive, const Graph& negative);
 Model* GetSparseEmbedding(const Graph& postive, const Graph& negative);
-void SampleNegativeGraph(const Graph& positive, Graph* negative);
-void SampleLocalNegativeGraph(const Graph& positive, Graph* negative);
+void SampleNegativeGraphUniform(const Graph& positive, Graph* negative);
+void SampleNegativeGraphPreferential(const Graph& positive, Graph* negative, double p);
+void SampleNegativeGraphLocal(const Graph& positive, Graph* negative);
 
 Model* GetCommonNeighbor(const Graph& base);

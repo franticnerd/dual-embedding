@@ -28,7 +28,7 @@ void LinearSVM(const std::vector<std::vector<double>*>& feature, const std::vect
     for (int epoch = 0; epoch < LINEAR_EPOCHS; ++epoch) {
         RandomPermutation(&order);
         for (int i : order) {
-            double G = label[i] * InnerProduct(w, *(feature[i])) - 1;
+            double G = label[i] * InnerProduct(w, *(feature[i])) - (label[i] == 1 ? 1 : 0);
             double U = (label[i] == 1 ? pos_penalty : neg_penalty);
             double PG = G;
             if (coeff->at(i) == 0)
@@ -53,11 +53,15 @@ void KernelSVM(const std::vector<std::vector<double>>& kernel, const std::vector
     for (int i = 0; i < (int)coeff->size(); ++i)
         order[i] = i;
 
-    std::vector<double> G(coeff->size(), -1);
+    std::vector<double> G(coeff->size(), 0);
     for (int i = 0; i < (int)coeff->size(); ++i)
         if (fabs(coeff->at(i)) > 1e-3)
             for (int j = 0; j < (int)coeff->size(); ++j)
                 G[j] += label[j] * kernel[i][j] * coeff->at(i);
+    for (int i = 0; i < (int)coeff->size(); ++i)
+        if (label[i] == 1)
+            G[i] -= 1;
+
     for (int epoch = 0; epoch < KERNEL_EPOCHS; ++epoch) {
         RandomPermutation(&order);
         for (int i : order) {

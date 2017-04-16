@@ -4,6 +4,8 @@
 #include <vector>
 
 #define EPOCHS 10
+#define POS_PENALTY 1
+#define NEG_PENALTY 0.25
 
 class KernelEmbedding : public Model {
     int size_;
@@ -34,7 +36,7 @@ void KernelEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
             local[i][j] = kernel[instance[i]][instance[j]];
     }
 
-    KernelSVM(local, label, 1, 0.2, &coeff[x]);
+    KernelSVM(local, label, POS_PENALTY, NEG_PENALTY, &coeff[x]);
     for (int i = 0; i < size_; ++i)
         if (i != x) {
             double val = 0;

@@ -21,7 +21,7 @@ void FiniteEmbeddingTest() {
     Graph graph(7);
     MakeGraph(&graph);
     Graph negative(7);
-    SampleNegativeGraph(graph, &negative);
+    SampleNegativeGraphPreferential(graph, &negative, 1);
     std::unique_ptr<Model> model(GetFiniteEmbedding(graph, negative, 5));
     std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));
@@ -32,7 +32,7 @@ void KernelEmbeddingTest() {
     Graph graph(7);
     MakeGraph(&graph);
     Graph negative(7);
-    SampleNegativeGraph(graph, &negative);
+    SampleNegativeGraphPreferential(graph, &negative, 1);
     std::unique_ptr<Model> model(GetKernelEmbedding(graph, negative));
     std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));
@@ -55,7 +55,7 @@ void CommonNeighborTest() {
     Graph graph(7);
     MakeGraph(&graph);
     Graph negative(7);
-    SampleNegativeGraph(graph, &negative);
+    SampleNegativeGraphPreferential(graph, &negative, 1);
     std::unique_ptr<Model> model(GetCommonNeighbor(graph));
     std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));

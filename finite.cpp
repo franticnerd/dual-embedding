@@ -9,6 +9,8 @@ namespace {
 }   // anonymous namespace
 
 #define EPOCHS 10
+#define POS_PENALTY 1
+#define NEG_PENALTY 0.25
 
 class FiniteEmbedding : public Model {
     int size_, dim_;
@@ -32,7 +34,7 @@ void FiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         feature.push_back(&embedding[i]);
         label.push_back(-1);
     }
-    LinearSVM(feature, label, 1, 0.2, &coeff[x]);
+    LinearSVM(feature, label, POS_PENALTY, NEG_PENALTY, &coeff[x]);
     for (int i = 0; i < dim_; ++i) {
         double val = 0;
         for (int j = 0; j < (int)feature.size(); ++j)
