@@ -40,7 +40,7 @@ int main() {
     std::cout << "Training Finite Embedding\n";
     std::unique_ptr<Model> m1(GetFiniteEmbedding(train, neg_train, 100));
     std::cout << "Training Kernel Embedding\n";
-    std::unique_ptr<Model> m2(GetKernelEmbedding(test, neg_test));
+    std::unique_ptr<Model> m2(GetKernelEmbedding(train, neg_train));
     std::cout << "Training Sparse Embedding\n";
     std::unique_ptr<Model> m3(GetSparseEmbedding(train, neg_empty));
     std::cout << "Training Common Neighbor\n";
