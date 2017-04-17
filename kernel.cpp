@@ -2,10 +2,12 @@
 #include "utility.h"
 #include "svm.h"
 #include <vector>
+#include <algorithm>
 
 #define EPOCHS 10
-#define POS_PENALTY 1
-#define NEG_PENALTY 0.25
+#define POS_PENALTY 2
+#define NEG_PENALTY 0.5
+#define DEG_NORM_POW 1
 
 class KernelEmbedding : public Model {
     int size_;
@@ -35,8 +37,8 @@ void KernelEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         for (int j = 0; j < (int)instance.size(); ++j)
             local[i][j] = kernel[instance[i]][instance[j]];
     }
-
-    KernelSVM(local, label, POS_PENALTY, NEG_PENALTY, &coeff[x]);
+    double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
+    KernelSVM(local, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x]);
     for (int i = 0; i < size_; ++i)
         if (i != x) {
             double val = 0;

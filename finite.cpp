@@ -3,14 +3,17 @@
 #include "svm.h"
 #include <vector>
 #include <random>
+#include <algorithm>
+#include <cmath>
 
 namespace {
     std::mt19937 gen;
 }   // anonymous namespace
 
 #define EPOCHS 10
-#define POS_PENALTY 1
-#define NEG_PENALTY 0.25
+#define POS_PENALTY 2
+#define NEG_PENALTY 0.5
+#define DEG_NORM_POW 1
 
 class FiniteEmbedding : public Model {
     int size_, dim_;
@@ -34,7 +37,8 @@ void FiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         feature.push_back(&embedding[i]);
         label.push_back(-1);
     }
-    LinearSVM(feature, label, POS_PENALTY, NEG_PENALTY, &coeff[x]);
+    double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
+    LinearSVM(feature, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x]);
     for (int i = 0; i < dim_; ++i) {
         double val = 0;
         for (int j = 0; j < (int)feature.size(); ++j)

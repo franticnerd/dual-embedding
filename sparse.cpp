@@ -3,10 +3,12 @@
 #include "svm.h"
 #include <vector>
 #include <map>
+#include <algorithm>
 
 #define EPOCHS 10
-#define POS_PENALTY 1
-#define NEG_PENALTY 0.25
+#define POS_PENALTY 2
+#define NEG_PENALTY 0.5
+#define DEG_NORM_POW 1
 
 struct SparseFeature {
     int index;
@@ -52,7 +54,9 @@ void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
     for (int i = 0; i < (int)instance.size(); ++i)
         feature_ptr.push_back(&feature[i]);
 
-    LinearSVM(feature_ptr, label, POS_PENALTY, NEG_PENALTY, &coeff[x]);
+    double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
+    LinearSVM(feature_ptr, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x]);
+
     std::vector<double> val(embedding[x].size(), 0);
     for (int i = 0; i < (int)instance.size(); ++i) {        
         for (int j = 0; j < (int)embedding[x].size(); ++j)
