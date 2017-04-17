@@ -37,7 +37,7 @@ void KernelEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
             local[i][j] = kernel[instance[i]][instance[j]];
     }
     double deg_norm = 1; //pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
-    KernelSVM(local, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x]);
+    KernelSVM(local, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x], false);
     for (int i = 0; i < size_; ++i)
         if (i != x) {
             double val = 0;

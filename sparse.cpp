@@ -54,7 +54,7 @@ void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         feature_ptr.push_back(&feature[i]);
 
     double deg_norm = 1; // pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
-    LinearSVM(feature_ptr, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x]);
+    LinearSVM(feature_ptr, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x], false);
 
     std::vector<double> val(embedding[x].size(), 0);
     for (int i = 0; i < (int)instance.size(); ++i) {        

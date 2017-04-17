@@ -33,7 +33,7 @@ void LinearSVMTest() {
     for (int i = 0; i < (int)label.size(); ++i)
         feature_ptr_vec.push_back(&feature_vec[i]);     
     std::vector<double> coeff(4, 0);
-    LinearSVM(feature_ptr_vec, label, 1000, 1000, &coeff);
+    LinearSVM(feature_ptr_vec, label, 1000, 1000, &coeff, false);
     assert(fabs(coeff[0] - coeff[2] - 0.3333) < 1e-3);
     assert(fabs(coeff[1]) < 1e-3);
     assert(fabs(coeff[3]) < 1e-3);
@@ -48,7 +48,7 @@ void KernelSVMTest() {
     kernel.push_back(MakeVector(-7, -17, 7, 17)); label.push_back(-1);
 
     std::vector<double> coeff(4, 0);
-    KernelSVM(kernel, label, 1000, 1000, &coeff);
+    KernelSVM(kernel, label, 1000, 1000, &coeff, false);
     assert(fabs(coeff[0] - coeff[2] - 0.3333) < 1e-3);
     assert(fabs(coeff[1]) < 1e-3);
     assert(fabs(coeff[3]) < 1e-3);
