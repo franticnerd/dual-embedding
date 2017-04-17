@@ -5,9 +5,8 @@
 #include <algorithm>
 
 #define EPOCHS 10
-#define POS_PENALTY 2
-#define NEG_PENALTY 0.5
-#define DEG_NORM_POW 1
+#define POS_PENALTY 0.03
+#define NEG_PENALTY 0.001
 
 class KernelEmbedding : public Model {
     int size_;
@@ -37,7 +36,7 @@ void KernelEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         for (int j = 0; j < (int)instance.size(); ++j)
             local[i][j] = kernel[instance[i]][instance[j]];
     }
-    double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
+    double deg_norm = 1; //pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
     KernelSVM(local, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x]);
     for (int i = 0; i < size_; ++i)
         if (i != x) {

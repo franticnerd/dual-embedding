@@ -86,13 +86,15 @@ int main() {
     SampleNegativeGraphUniform(test, &neg_test);
     //SampleNegativeGraphPreferential(test, &neg_test, 1);
 
+    std::unique_ptr<Model> model;
+
     std::cout << "Training Finite Embedding\n";
-    std::unique_ptr<Model> model(GetFiniteEmbedding(train, neg_train, 100));
+    model.reset(GetFiniteEmbedding(train, neg_train, 100));
     std::cout << "Evaluating Finite Embedding\n";
     EvaluateAll(model.get(), train, neg_train, test, neg_test);
 
     //std::cout << "Training Kernel Embedding\n";
-    //model.reset(GetKernelEmbedding(train, neg_train, false, false));
+    //model.reset(GetKernelEmbedding(train, neg_train));
     //std::cout << "Evaluating Kernel Embedding\n";
     //EvaluateAll(model.get(), train, neg_train, test, neg_test);
 

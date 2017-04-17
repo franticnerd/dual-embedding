@@ -11,9 +11,8 @@ namespace {
 }   // anonymous namespace
 
 #define EPOCHS 10
-#define POS_PENALTY 2
-#define NEG_PENALTY 0.5
-#define DEG_NORM_POW 1
+#define POS_PENALTY 0.03
+#define NEG_PENALTY 0.001
 
 class FiniteEmbedding : public Model {
     int size_, dim_;
@@ -37,7 +36,7 @@ void FiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         feature.push_back(&embedding[i]);
         label.push_back(-1);
     }
-    double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
+    double deg_norm = 1; // pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
     LinearSVM(feature, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x]);
     for (int i = 0; i < dim_; ++i) {
         double val = 0;

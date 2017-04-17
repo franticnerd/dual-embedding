@@ -6,9 +6,8 @@
 #include <algorithm>
 
 #define EPOCHS 10
-#define POS_PENALTY 2
-#define NEG_PENALTY 0.5
-#define DEG_NORM_POW 1
+#define POS_PENALTY 0.03
+#define NEG_PENALTY 0.001
 
 struct SparseFeature {
     int index;
@@ -54,7 +53,7 @@ void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
     for (int i = 0; i < (int)instance.size(); ++i)
         feature_ptr.push_back(&feature[i]);
 
-    double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
+    double deg_norm = 1; // pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
     LinearSVM(feature_ptr, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x]);
 
     std::vector<double> val(embedding[x].size(), 0);
