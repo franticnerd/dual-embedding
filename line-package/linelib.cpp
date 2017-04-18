@@ -145,7 +145,8 @@ void line_hin::init(char *file_name, line_node *p_u, line_node *p_v)
     int u, v;
     double w;
     hin_nb curnb;
-    while (fscanf(fi, "%s %s %lf %c", word1, word2, &w, &tp) == 4)
+    /* while (fscanf(fi, "%s %s %lf %c", word1, word2, &w, &tp) == 4) */
+    while (fscanf(fi, "%[^\t]\t%[^\t]\t%lf\t%c\n", word1, word2, &w, &tp) == 4)
     {
         if (hin_size % 10000 == 0)
         {
