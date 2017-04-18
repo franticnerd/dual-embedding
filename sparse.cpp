@@ -3,8 +3,11 @@
 #include "svm.h"
 #include <vector>
 #include <map>
+#include <algorithm>
 
 #define EPOCHS 10
+#define POS_PENALTY 0.03
+#define NEG_PENALTY 0.001
 
 struct SparseFeature {
     int index;
@@ -19,7 +22,7 @@ class SparseEmbedding : public Model {
 
     void UpdateEmbedding(const Graph& positive, const Graph& negative, int x);
 public:
-    SparseEmbedding(const Graph& graph);
+    SparseEmbedding(const Graph& graph, const Graph& negative);
     double Evaluate(int x, int y);
 };
 
@@ -39,17 +42,20 @@ void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
     }
 
     std::vector<std::vector<double>> feature;
-    std::vector<std::vector<double>*> feature_ptr;
     for (int i : instance) {
         std::vector<double> vec(embedding[x].size());
         for (const auto& p : embedding[i])
             if (feature_index.count(p.index) > 0)
                 vec[feature_index[p.index]] = p.value;
         feature.push_back(vec);
-        feature_ptr.push_back(&feature.back());
     }
+    std::vector<std::vector<double>*> feature_ptr;
+    for (int i = 0; i < (int)instance.size(); ++i)
+        feature_ptr.push_back(&feature[i]);
 
-    LinearSVM(feature_ptr, label, 1, 1, &coeff[x]);
+    double deg_norm = 1; // pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
+    LinearSVM(feature_ptr, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x], false);
+
     std::vector<double> val(embedding[x].size(), 0);
     for (int i = 0; i < (int)instance.size(); ++i) {        
         for (int j = 0; j < (int)embedding[x].size(); ++j)
@@ -59,18 +65,15 @@ void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         embedding[x][i].value = val[i];
 }
 
-SparseEmbedding::SparseEmbedding(const Graph& graph) :
+SparseEmbedding::SparseEmbedding(const Graph& graph, const Graph& negative) :
     size_(graph.size) {
     embedding.resize(size_);
     for (int i = 0; i < size_; ++i) {
         embedding[i].clear();
         embedding[i].push_back(SparseFeature(i, 1));
         for (int j : graph.edge[i])
-            embedding[i].push_back(SparseFeature(j, 0));
+            embedding[i].push_back(SparseFeature(j, 1));
     }
-
-    Graph negative(size_);
-    SampleLocalNegativeGraph(graph, &negative);
 
     coeff.resize(size_);
     for (int i = 0; i < size_; ++i)
@@ -97,6 +100,6 @@ double SparseEmbedding::Evaluate(int x, int y) {
     return val;
 }
 
-Model* GetSparseEmbedding(const Graph& graph) {
-    return new SparseEmbedding(graph);
+Model* GetSparseEmbedding(const Graph& graph, const Graph& negative) {
+    return new SparseEmbedding(graph, negative);
 }
