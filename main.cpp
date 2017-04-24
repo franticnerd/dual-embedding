@@ -98,27 +98,27 @@ int main() {
     std::unique_ptr<Model> model;
 
     std::cout << "Training Finite Embedding\n";
-    model.reset(GetFiniteEmbedding(train, neg_train, 100));
+    model.reset(GetFiniteEmbedding(train, neg_train, 100, 0.03, 30, 0));
     std::cout << "Evaluating Finite Embedding\n";
     EvaluateAll(model.get(), train, neg_train, test, neg_test);
 
     //std::cout << "Training Kernel Embedding\n";
-    //model.reset(GetKernelEmbedding(train, neg_train));
+    //model.reset(GetKernelEmbedding(train, neg_train, 0.03, 30, 0));
     //std::cout << "Evaluating Kernel Embedding\n";
     //EvaluateAll(model.get(), train, neg_train, test, neg_test);
 
     //std::cout << "Training Sparse Embedding\n";
-    //model.reset(GetSparseEmbedding(train, neg_empty));
+    //model.reset(GetSparseEmbedding(train, neg_empty, 0.015, 15, 0));
     //std::cout << "Evaluating Sparse Embedding\n";
     //EvaluateAll(model.get(), train, neg_train, test, neg_test);
 
     std::cout << "Training Sequential Embedding\n";
-    model.reset(GetSequentialFiniteEmbedding(train, neg_train, 100));
+    model.reset(GetSequentialFiniteEmbedding(train, neg_train, 100, 0.1, 2));
     std::cout << "Evaluating Sequential Embedding\n";
     EvaluateAll(model.get(), train, neg_train, test, neg_test);
 
     std::cout << "Training Common Neighbor\n";
-    model.reset(GetCommonNeighbor(train));
+    model.reset(GetCommonNeighbor(train, 120));
     std::cout << "Evaluating Common Neighbor\n";
     EvaluateAll(model.get(), train, neg_train, test, neg_test);
 

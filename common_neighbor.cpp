@@ -4,8 +4,9 @@
 
 class CommonNeighbor : public Model {
     Graph base_;
+    const double normalizer_;
   public:
-    CommonNeighbor(const Graph& base) : base_(base) {}
+    CommonNeighbor(const Graph& base, double normalizer) : base_(base), normalizer_(normalizer) {}
     double Evaluate(int x, int y) {
         std::set<int> set;
         for (const auto& p : base_.edge[x])
@@ -16,10 +17,10 @@ class CommonNeighbor : public Model {
                 val++;
         if (set.count(y) > 0) 
             val += sqrt(base_.edge[x].size()) + sqrt(base_.edge[y].size());
-        return val / 120;
+        return val / normalizer_;
     }
 };
 
-Model* GetCommonNeighbor(const Graph& base) {
-    return new CommonNeighbor(base);
+Model* GetCommonNeighbor(const Graph& base, double normalizer) {
+    return new CommonNeighbor(base, normalizer);
 }

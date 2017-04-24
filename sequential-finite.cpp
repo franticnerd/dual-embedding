@@ -12,18 +12,17 @@ namespace {
 }   // anonymous namespace
 
 #define EPOCHS 10
-#define POS_PENALTY 0.5
-#define NEG_PENALTY 0.05
 
 class SequentialFiniteEmbedding : public Model {
     int size_, dim_;
+    const double neg_penalty_, regularizer_;
     std::vector<std::vector<double>> embedding;
     std::vector<std::vector<double>> coeff;
     std::vector<bool> estimated;
 
     void UpdateEmbedding(const Graph& positive, const Graph& negative, int x);
 public:
-    SequentialFiniteEmbedding(const Graph& graph, const Graph& negative, int dimension);
+    SequentialFiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer);
     double Evaluate(int x, int y);
 };
 
@@ -35,14 +34,14 @@ void SequentialFiniteEmbedding::UpdateEmbedding(const Graph& positive, const Gra
     if (estimated[i]) {
         feature.push_back(&embedding[i]);
         label.push_back(1);
-        penalty_coeff.push_back(POS_PENALTY);
+        penalty_coeff.push_back(1 / regularizer_);
         margin.push_back(1);
     }
     for (int i : negative.edge[x]) 
     if (estimated[i]) {
         feature.push_back(&embedding[i]);
         label.push_back(-1);
-        penalty_coeff.push_back(NEG_PENALTY);
+        penalty_coeff.push_back(neg_penalty_ / regularizer_);
         margin.push_back(1);
     }
     coeff[x].resize(label.size());
@@ -61,9 +60,11 @@ void SequentialFiniteEmbedding::UpdateEmbedding(const Graph& positive, const Gra
     estimated[x] = true;
 }
 
-SequentialFiniteEmbedding::SequentialFiniteEmbedding(const Graph& graph, const Graph& negative, int dimension) :
+SequentialFiniteEmbedding::SequentialFiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer) :
     size_(graph.size),
-    dim_(dimension) {
+    dim_(dimension),
+    neg_penalty_(neg_penalty),
+    regularizer_(regularizer) {
     embedding.resize(size_);
     for (int i = 0; i < size_; ++i)
         embedding[i].resize(dim_);
@@ -83,6 +84,6 @@ double SequentialFiniteEmbedding::Evaluate(int x, int y) {
     return InnerProduct(embedding[x], embedding[y]);
 }
 
-Model* GetSequentialFiniteEmbedding(const Graph& graph, const Graph& negative, int dimension) {
-    return new SequentialFiniteEmbedding(graph, negative, dimension);
+Model* GetSequentialFiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer) {
+    return new SequentialFiniteEmbedding(graph, negative, dimension, neg_penalty, regularizer);
 }
