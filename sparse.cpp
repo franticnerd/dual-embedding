@@ -6,8 +6,9 @@
 #include <algorithm>
 
 #define EPOCHS 10
-#define POS_PENALTY 0.03
+#define POS_PENALTY 0.07
 #define NEG_PENALTY 0.001
+#define DEG_NORM_POW 0
 
 struct SparseFeature {
     int index;
@@ -27,18 +28,25 @@ public:
 };
 
 void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negative, int x) {
+    double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
+
     std::map<int, int> feature_index;
     for (int i = 0; i < (int)embedding[x].size(); ++i)
         feature_index[embedding[x][i].index] = i;
 
     std::vector<int> label, instance;
+    std::vector<double> penalty_coeff, margin;
     for (int i : positive.edge[x]) {
         instance.push_back(i);
         label.push_back(1);
+        penalty_coeff.push_back(POS_PENALTY * deg_norm);
+        margin.push_back(1);
     }
     for (int i : negative.edge[x]) {
         instance.push_back(i);
         label.push_back(-1);
+        penalty_coeff.push_back(NEG_PENALTY * deg_norm);
+        margin.push_back(0);
     }
 
     std::vector<std::vector<double>> feature;
@@ -53,8 +61,7 @@ void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
     for (int i = 0; i < (int)instance.size(); ++i)
         feature_ptr.push_back(&feature[i]);
 
-    double deg_norm = 1; // pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
-    LinearSVM(feature_ptr, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x], false);
+    LinearSVM(feature_ptr, label, penalty_coeff, margin, &coeff[x], false);
 
     std::vector<double> val(embedding[x].size(), 0);
     for (int i = 0; i < (int)instance.size(); ++i) {        
@@ -70,9 +77,9 @@ SparseEmbedding::SparseEmbedding(const Graph& graph, const Graph& negative) :
     embedding.resize(size_);
     for (int i = 0; i < size_; ++i) {
         embedding[i].clear();
-        embedding[i].push_back(SparseFeature(i, 1));
+        embedding[i].push_back(SparseFeature(i, 0.07));
         for (int j : graph.edge[i])
-            embedding[i].push_back(SparseFeature(j, 1));
+            embedding[i].push_back(SparseFeature(j, 0.07));
     }
 
     coeff.resize(size_);

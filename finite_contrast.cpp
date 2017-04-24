@@ -14,13 +14,14 @@ namespace {
 #define PENALTY 0.03
 #define DEG_NORM_POW 0
 
-typedef std::vector<std::vector<ContrastEdgePair>> ContrastEdgeAdjacencyList;
-
 struct ContrastEdgePair {
     int b, c, d, label;
     ContrastEdgePair(int b_, int c_, int d_, int label_) :
         b(b_), c(c_), d(d_), label(label_) {}
 };
+
+typedef std::vector<std::vector<ContrastEdgePair>> ContrastEdgeAdjacencyList;
+
 
 class FiniteContrastEmbedding : public Model {
     int size_, dim_;
@@ -34,6 +35,8 @@ public:
 };
 
 void FiniteContrastEmbedding::UpdateEmbedding(const ContrastEdgeAdjacencyList& table, int x) {
+    double deg_norm = pow(std::max((int)table[x].size(), 1), DEG_NORM_POW);
+
     std::vector<std::vector<double>*> feature;
     std::vector<int> label;
     std::vector<double> margin, penalty_coeff;
@@ -41,9 +44,8 @@ void FiniteContrastEmbedding::UpdateEmbedding(const ContrastEdgeAdjacencyList& t
         feature.push_back(&embedding[pair.b]);
         label.push_back(pair.label);
         margin.push_back(1 + pair.label * InnerProduct(embedding[pair.c], embedding[pair.d]));
-        penalty_coeff.push_back(PENALTY);
+        penalty_coeff.push_back(PENALTY * deg_norm);
     }
-    double deg_norm = pow(std::max((int)table[x].size(), 1), DEG_NORM_POW);
     LinearSVM(feature, label, penalty_coeff, margin, &coeff[x], false);
     for (int i = 0; i < dim_; ++i) {
         double val = 0;

@@ -30,20 +30,25 @@ public:
 void SequentialFiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negative, int x) {
     std::vector<std::vector<double>*> feature;
     std::vector<int> label;
+    std::vector<double> penalty_coeff, margin;
     for (int i : positive.edge[x])
     if (estimated[i]) {
         feature.push_back(&embedding[i]);
         label.push_back(1);
+        penalty_coeff.push_back(POS_PENALTY);
+        margin.push_back(1);
     }
     for (int i : negative.edge[x]) 
     if (estimated[i]) {
         feature.push_back(&embedding[i]);
         label.push_back(-1);
+        penalty_coeff.push_back(NEG_PENALTY);
+        margin.push_back(1);
     }
     coeff[x].resize(label.size());
 
     for (int i = 0; i < EPOCHS; ++i)
-        LinearSVM(feature, label, POS_PENALTY, NEG_PENALTY, &coeff[x], false);
+        LinearSVM(feature, label, penalty_coeff, margin, &coeff[x], false);
     for (int i = 0; i < dim_; ++i) {
         double val = 0;
         for (int j = 0; j < (int)feature.size(); ++j)

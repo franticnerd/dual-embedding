@@ -7,6 +7,7 @@
 #define EPOCHS 10
 #define POS_PENALTY 0.03
 #define NEG_PENALTY 0.001
+#define DEG_NORM_POW 0
 
 class KernelEmbedding : public Model {
     int size_;
@@ -20,15 +21,22 @@ public:
 };
 
 void KernelEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negative, int x) {
+    double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
+
     std::vector<std::vector<double>> local;
     std::vector<int> label, instance;
+    std::vector<double> penalty_coeff, margin;
     for (int i : positive.edge[x]) {
         instance.push_back(i);
         label.push_back(1);
+        penalty_coeff.push_back(POS_PENALTY * deg_norm);
+        margin.push_back(1);
     }
     for (int i : negative.edge[x]) {
         instance.push_back(i);
         label.push_back(-1);
+        penalty_coeff.push_back(NEG_PENALTY * deg_norm);
+        margin.push_back(0);
     }
     local.resize(instance.size());
     for (int i = 0; i < (int)instance.size(); ++i) {
@@ -36,8 +44,8 @@ void KernelEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         for (int j = 0; j < (int)instance.size(); ++j)
             local[i][j] = kernel[instance[i]][instance[j]];
     }
-    double deg_norm = 1; //pow(std::max((int)positive.edge[x].size(), 1), DEG_NORM_POW);
-    KernelSVM(local, label, POS_PENALTY / deg_norm, NEG_PENALTY / deg_norm, &coeff[x], false);
+
+    KernelSVM(local, label, penalty_coeff, margin, &coeff[x], false);
     for (int i = 0; i < size_; ++i)
         if (i != x) {
             double val = 0;

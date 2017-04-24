@@ -1,5 +1,6 @@
 #include "base.h"
 #include <set>
+#include <cmath>
 
 class CommonNeighbor : public Model {
     Graph base_;
@@ -13,7 +14,9 @@ class CommonNeighbor : public Model {
         for (const auto& p : base_.edge[y])
             if (set.count(p) > 0)
                 val++;
-        return val;
+        if (set.count(y) > 0) 
+            val += sqrt(base_.edge[x].size()) + sqrt(base_.edge[y].size());
+        return val / 120;
     }
 };
 
