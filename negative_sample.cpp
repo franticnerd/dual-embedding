@@ -2,6 +2,7 @@
 #include "utility.h"
 #include <random>
 #include <cmath>
+#include <set>
 
 #define NEGATIVE_RATIO 2
 
@@ -43,4 +44,18 @@ void SampleNegativeGraphLocal(const Graph& positive, Graph* negative) {
                 if (target != i)
                     negative->AddEdge(i, target);
             }
+}
+
+void RemoveRedundant(const Graph& positive, Graph* negative) {
+    std::set<std::pair<int, int>> pr;
+    for (int i = 0; i < positive.size; ++i)
+        for (int j : positive.edge[i])
+            pr.insert(std::make_pair(i, j));
+    for (int i = 0; i < negative->size; ++i) {
+        std::vector<int> new_edge;
+        for (int j : negative->edge[i])
+            if (pr.count(std::make_pair(i, j)) == 0)
+                new_edge.push_back(j);
+        negative->edge[i] = new_edge;
+    }
 }

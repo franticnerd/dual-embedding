@@ -79,11 +79,20 @@ int main() {
     std::cout << "Reading Dataset\n";
     ReadDataset("node-w.txt", "edge-ww.txt", &train, &test);
     Graph neg_train(train.size), neg_test(test.size), neg_empty(train.size), neg_local(train.size);
+    
+    Graph combine(train.size);
+    for (int i = 0; i < train.size; ++i)
+        for (int y : train.edge[i])
+            if (i < y) combine.AddEdge(i, y);
+    for (int i = 0; i < test.size; ++i)
+        for (int y : test.edge[i])
+            if (i < y) combine.AddEdge(i, y);
 
     std::cout << "Sampling Negative Dataset\n";
     SampleNegativeGraphPreferential(train, &neg_train, 0.1);
     SampleNegativeGraphLocal(train, &neg_local);
     SampleNegativeGraphUniform(test, &neg_test);
+    RemoveRedundant(combine, &neg_test);
     //SampleNegativeGraphPreferential(test, &neg_test, 1);
 
     std::unique_ptr<Model> model;
@@ -98,15 +107,20 @@ int main() {
     //std::cout << "Evaluating Kernel Embedding\n";
     //EvaluateAll(model.get(), train, neg_train, test, neg_test);
 
-    std::cout << "Training Sparse Embedding\n";
-    model.reset(GetSparseEmbedding(train, neg_empty));
-    std::cout << "Evaluating Sparse Embedding\n";
+    //std::cout << "Training Sparse Embedding\n";
+    //model.reset(GetSparseEmbedding(train, neg_empty));
+    //std::cout << "Evaluating Sparse Embedding\n";
+    //EvaluateAll(model.get(), train, neg_train, test, neg_test);
+
+    std::cout << "Training Sequential Embedding\n";
+    model.reset(GetSequentialFiniteEmbedding(train, neg_train, 100));
+    std::cout << "Evaluating Sequential Embedding\n";
     EvaluateAll(model.get(), train, neg_train, test, neg_test);
 
     std::cout << "Training Common Neighbor\n";
     model.reset(GetCommonNeighbor(train));
     std::cout << "Evaluating Common Neighbor\n";
-    EvaluateMAP(model.get(), test, neg_test);
+    EvaluateAll(model.get(), train, neg_train, test, neg_test);
 
     model.reset(new Random());
     std::cout << "Evaluating Random\n";
