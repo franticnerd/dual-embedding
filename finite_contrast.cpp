@@ -92,7 +92,7 @@ FiniteContrastEmbedding::FiniteContrastEmbedding(const Graph& graph, const Graph
 
     coeff.resize(size_);
     for (int i = 0; i < size_; ++i)
-        coeff[i].resize(graph.edge[i].size() + negative.edge[i].size());
+        coeff[i].resize(table[i].size());
 
     std::vector<int> order(size_);
     for (int j = 0; j < size_; ++j)
