@@ -21,8 +21,9 @@ void FiniteEmbeddingTest() {
     Graph graph(7);
     MakeGraph(&graph);
     Graph negative(7);
-    SampleNegativeGraphPreferential(graph, &negative, 1);
-    std::unique_ptr<Model> model(GetFiniteEmbedding(graph, negative, 5, 1, 1, 0));
+    SampleNegativeGraphUniform(graph, &negative);
+    RemoveRedundant(graph, &negative);
+    std::unique_ptr<Model> model(GetFiniteEmbedding(graph, negative, 5, 0.2, 1, 0));
     std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));
     assert(model->Evaluate(1, 2) > model->Evaluate(1, 5));
@@ -33,6 +34,7 @@ void FiniteContrastEmbeddingTest() {
     MakeGraph(&graph);
     Graph negative(7);
     SampleNegativeGraphUniform(graph, &negative);
+    RemoveRedundant(graph, &negative);
     std::unique_ptr<Model> model(GetFiniteContrastEmbedding(graph, negative, 3, 5, 1, 0));
     std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));
@@ -43,8 +45,9 @@ void KernelEmbeddingTest() {
     Graph graph(7);
     MakeGraph(&graph);
     Graph negative(7);
-    SampleNegativeGraphPreferential(graph, &negative, 1);
-    std::unique_ptr<Model> model(GetKernelEmbedding(graph, negative, 1, 1, 0));
+    SampleNegativeGraphUniform(graph, &negative);
+    RemoveRedundant(graph, &negative);
+    std::unique_ptr<Model> model(GetKernelEmbedding(graph, negative, 0.2, 1, 0));
     std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));
     assert(model->Evaluate(1, 2) > model->Evaluate(1, 5));
@@ -66,7 +69,8 @@ void CommonNeighborTest() {
     Graph graph(7);
     MakeGraph(&graph);
     Graph negative(7);
-    SampleNegativeGraphPreferential(graph, &negative, 1);
+    SampleNegativeGraphUniform(graph, &negative);
+    RemoveRedundant(graph, &negative);
     std::unique_ptr<Model> model(GetCommonNeighbor(graph, 5));
     std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));

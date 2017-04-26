@@ -65,7 +65,6 @@ void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
     std::vector<double> val(embedding[x].size(), 0);
     LinearSVM(feature_ptr, sqr_norm, label, penalty_coeff, margin, &coeff[x], &val, val.size(), false);
 
-    sqr_norm[x] = InnerProduct(val.data(), val.data(), val.size());
     for (int i = 0; i < (int)embedding[x].size(); ++i)
         embedding[x][i].value = val[i];
 }
