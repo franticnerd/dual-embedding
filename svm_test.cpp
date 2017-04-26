@@ -24,16 +24,20 @@ std::vector<double> MakeVector(double a, double b, double c, double d) {
 void LinearSVMTest() {
     std::vector<std::vector<double>> feature_vec;
     std::vector<int> label;
-    feature_vec.push_back(MakeFeature(1, 1, 1)); label.push_back(1);
-    feature_vec.push_back(MakeFeature(2, 2, 3)); label.push_back(1);
-    feature_vec.push_back(MakeFeature(-1, -1, -1)); label.push_back(-1);
-    feature_vec.push_back(MakeFeature(-2, -2, -3)); label.push_back(-1);
+    std::vector<double> sqr_norm;
+    feature_vec.push_back(MakeFeature(1, 1, 1)); label.push_back(1); sqr_norm.push_back(3);
+    feature_vec.push_back(MakeFeature(2, 2, 3)); label.push_back(1); sqr_norm.push_back(17);
+    feature_vec.push_back(MakeFeature(-1, -1, -1)); label.push_back(-1); sqr_norm.push_back(3);
+    feature_vec.push_back(MakeFeature(-2, -2, -3)); label.push_back(-1); sqr_norm.push_back(17);
 
-    std::vector<std::vector<double>*> feature_ptr_vec;
+    std::vector<double*> feature_ptr;
     for (int i = 0; i < (int)label.size(); ++i)
-        feature_ptr_vec.push_back(&feature_vec[i]);     
-    std::vector<double> coeff(4, 0), margin(4, 1), penalty_coeff(4, 1000);
-    LinearSVM(feature_ptr_vec, label, penalty_coeff, margin, &coeff, false);
+        feature_ptr.push_back(feature_vec[i].data());
+    std::vector<double> coeff(4, 0), margin(4, 1), penalty_coeff(4, 1000), w(4, 0);
+    LinearSVM(feature_ptr, sqr_norm, label, penalty_coeff, margin, &coeff, &w, 3, false);
+    assert(fabs(w[0] - 0.3333) < 1e-3);
+    assert(fabs(w[1] - 0.3333) < 1e-3);
+    assert(fabs(w[2] - 0.3333) < 1e-3);
     assert(fabs(coeff[0] - coeff[2] - 0.3333) < 1e-3);
     assert(fabs(coeff[1]) < 1e-3);
     assert(fabs(coeff[3]) < 1e-3);

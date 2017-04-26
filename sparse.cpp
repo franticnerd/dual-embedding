@@ -18,6 +18,7 @@ class SparseEmbedding : public Model {
     const double neg_penalty_, regularizer_, deg_norm_pow_;
     std::vector<std::vector<SparseFeature>> embedding;
     std::vector<std::vector<double>> coeff;
+    std::vector<double> feature_buffer;
 
     void UpdateEmbedding(const Graph& positive, const Graph& negative, int x);
 public:
@@ -27,10 +28,6 @@ public:
 
 void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negative, int x) {
     double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), deg_norm_pow_);
-
-    std::map<int, int> feature_index;
-    for (int i = 0; i < (int)embedding[x].size(); ++i)
-        feature_index[embedding[x][i].index] = i;
 
     std::vector<int> label, instance;
     std::vector<double> penalty_coeff, margin;
@@ -48,24 +45,27 @@ void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
     }
 
     std::vector<std::vector<double>> feature;
+    std::vector<double> sqr_norm;
     for (int i : instance) {
+        int index = 0;
         std::vector<double> vec(embedding[x].size());
         for (const auto& p : embedding[i])
-            if (feature_index.count(p.index) > 0)
-                vec[feature_index[p.index]] = p.value;
-        feature.push_back(vec);
+            feature_buffer[p.index] = p.value;
+        for (const auto& p : embedding[x])
+            vec[index ++] = feature_buffer[p.index];
+        for (const auto& p : embedding[i])
+            feature_buffer[p.index] = 0;
+        sqr_norm.push_back(InnerProduct(vec.data(), vec.data(), vec.size()));
+        feature.push_back(std::move(vec));
     }
-    std::vector<std::vector<double>*> feature_ptr;
+    std::vector<double*> feature_ptr;
     for (int i = 0; i < (int)instance.size(); ++i)
-        feature_ptr.push_back(&feature[i]);
-
-    LinearSVM(feature_ptr, label, penalty_coeff, margin, &coeff[x], false);
+        feature_ptr.push_back(feature[i].data());
 
     std::vector<double> val(embedding[x].size(), 0);
-    for (int i = 0; i < (int)instance.size(); ++i) {        
-        for (int j = 0; j < (int)embedding[x].size(); ++j)
-            val[j] += coeff[x][i] * feature[i][j];
-    }
+    LinearSVM(feature_ptr, sqr_norm, label, penalty_coeff, margin, &coeff[x], &val, val.size(), false);
+
+    sqr_norm[x] = InnerProduct(val.data(), val.data(), val.size());
     for (int i = 0; i < (int)embedding[x].size(); ++i)
         embedding[x][i].value = val[i];
 }
@@ -83,6 +83,7 @@ SparseEmbedding::SparseEmbedding(const Graph& graph, const Graph& negative, doub
             embedding[i].push_back(SparseFeature(j, 1));
     }
 
+    feature_buffer.resize(size_, 0);
     coeff.resize(size_);
     for (int i = 0; i < size_; ++i)
         coeff[i].resize(graph.edge[i].size() + negative.edge[i].size());
@@ -98,13 +99,13 @@ SparseEmbedding::SparseEmbedding(const Graph& graph, const Graph& negative, doub
 }
 
 double SparseEmbedding::Evaluate(int x, int y) {
-    std::map<int, double> map;
     for (const auto& p : embedding[x])
-        map[p.index] = p.value;
+        feature_buffer[p.index] = p.value;
     double val = 0;
     for (const auto& p : embedding[y])
-        if (map.count(p.index) > 0)
-            val += p.value * map[p.index];
+        val += p.value * feature_buffer[p.index];
+    for (const auto& p : embedding[x])
+        feature_buffer[p.index] = 0;
     return val;
 }
 

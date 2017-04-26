@@ -9,29 +9,25 @@
 #define INFTY 1e10
 
 // Dual Coordinate Descent
-void LinearSVM(const std::vector<std::vector<double>*>& feature, const std::vector<int>& label,
-    const std::vector<double>& penalty_coeff, const std::vector<double>& margin, std::vector<double>* coeff, bool l2) {
-    if (feature.size() == 0) return;
-    int dim = feature[0]->size();
-    std::vector<double> w(dim, 0);
-    for (int i = 0; i < (int)coeff->size(); ++i)
+void LinearSVM(const std::vector<double*>& feature, const std::vector<double>& feature_sqr_norm, const std::vector<int>& label,
+    const std::vector<double>& penalty_coeff, const std::vector<double>& margin, std::vector<double>* coeff, 
+    std::vector<double>* w, int dim, bool l2) {
+    int feature_size = feature.size();
+    std::fill(w->begin(), w->end(), 0);
+
+    if (feature_size == 0) return;
+    for (int i = 0; i < feature_size; ++i)
         if (fabs(coeff->at(i)) > 1e-4)
         for (int j = 0; j < dim; ++j)
-            w[j] += feature[i]->at(j) * coeff->at(i);
-    std::vector<double> Q(coeff->size(), 0);
-    for (int i = 0; i < (int)coeff->size(); ++i) {
-        for (int j = 0; j < dim; ++j)
-            Q[i] += sqr(feature[i]->at(j));
-        Q[i] += (l2 ? 1 / penalty_coeff[i] : 0) / 2;
-    }
+            w->at(j) += feature[i][j] * coeff->at(i);
 
-    std::vector<int> order(coeff->size());
-    for (int i = 0; i < (int)coeff->size(); ++i)
+    std::vector<int> order(feature_size);
+    for (int i = 0; i < feature_size; ++i)
         order[i] = i;
     for (int epoch = 0; epoch < LINEAR_EPOCHS; ++epoch) {
         RandomPermutation(&order);
         for (int i : order) {
-            double G = label[i] * InnerProduct(w, *(feature[i])) - margin[i];
+            double G = label[i] * InnerProduct(w->data(), feature[i], dim) - margin[i];
             double U = (l2 ? INFTY : penalty_coeff[i]);
             double PG = G;
             if (coeff->at(i) == 0)
@@ -40,10 +36,11 @@ void LinearSVM(const std::vector<std::vector<double>*>& feature, const std::vect
                 PG = std::max(PG, (double)0);
             if (PG != 0) {
                 double old_coeff = coeff->at(i);
-                double new_alpha = std::min(std::max(coeff->at(i) * label[i] - G / Q[i], (double)0), U);
+                double Q = feature_sqr_norm[i] + (l2 ? 1 / penalty_coeff[i] : 0) / 2;
+                double new_alpha = std::min(std::max(coeff->at(i) * label[i] - G / Q, (double)0), U);
                 coeff->at(i) = new_alpha * label[i];
                 for (int j = 0; j < dim; ++j)
-                    w[j] += (coeff->at(i) - old_coeff) * feature[i]->at(j);
+                    w->at(j) += (coeff->at(i) - old_coeff) * feature[i][j];
             }
         }
     }

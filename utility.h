@@ -14,6 +14,12 @@ class Prop_Sampler {
 };
 
 void RandomPermutation(std::vector<int>* vec);
-double InnerProduct(const std::vector<double>& x, const std::vector<double>& y);
+inline double InnerProduct(const double* x, const double* y, int dim) {
+    double val = 0;
+    for (int i = 0; i < dim; ++i)
+        val += x[i] * y[i];
+    return val;
+}
+
 double EvaluateF1(const std::vector<double>& positive, const std::vector<double>& negative);
 double EvaluateMAP(const std::vector<double>& positive, const std::vector<double>& negative);

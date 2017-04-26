@@ -15,13 +15,6 @@ void RandomPermutation(std::vector<int>* vec) {
     }
 }
 
-double InnerProduct(const std::vector<double>& x, const std::vector<double>& y) {
-    double val = 0;
-    for (int i = 0; i < (int)x.size(); ++i)
-        val += x[i] * y[i];
-    return val;
-}
-
 double EvaluateF1(const std::vector<double>& positive, const std::vector<double>& negative) {
     if (positive.size() == 0) return 0;
 

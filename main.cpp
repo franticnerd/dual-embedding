@@ -43,12 +43,12 @@ class Predefined : public Model {
             std::vector<std::string> word_vec;
             while (is2 >> word)
                 word_vec.push_back(word);
-            for (int j = word_vec.size() - dim_; j < word_vec.size(); ++j)
+            for (int j = word_vec.size() - dim_; j < (int)word_vec.size(); ++j)
                 embedding[i].push_back(std::stof(word_vec[j]));
         }
     }
     double Evaluate(int x, int y) {
-        return InnerProduct(embedding[x], embedding[y]);
+        return InnerProduct(embedding[x].data(), embedding[y].data(), dim_);
     }
 };
 

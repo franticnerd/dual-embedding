@@ -18,6 +18,7 @@ class SequentialFiniteEmbedding : public Model {
     const double neg_penalty_, regularizer_;
     std::vector<std::vector<double>> embedding;
     std::vector<std::vector<double>> coeff;
+    std::vector<double> sqr_norm;
     std::vector<bool> estimated;
 
     void UpdateEmbedding(const Graph& positive, const Graph& negative, int x);
@@ -27,36 +28,34 @@ public:
 };
 
 void SequentialFiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negative, int x) {
-    std::vector<std::vector<double>*> feature;
+    std::vector<double*> feature;
     std::vector<int> label;
-    std::vector<double> penalty_coeff, margin;
+    std::vector<double> penalty_coeff, margin, f_sqr_norm;
     for (int i : positive.edge[x])
     if (estimated[i]) {
-        feature.push_back(&embedding[i]);
+        feature.push_back(embedding[i].data());
         label.push_back(1);
         penalty_coeff.push_back(1 / regularizer_);
         margin.push_back(1);
+        f_sqr_norm.push_back(InnerProduct(embedding[i].data(), embedding[i].data(), dim_));
     }
     for (int i : negative.edge[x]) 
     if (estimated[i]) {
-        feature.push_back(&embedding[i]);
+        feature.push_back(embedding[i].data());
         label.push_back(-1);
         penalty_coeff.push_back(neg_penalty_ / regularizer_);
         margin.push_back(1);
+        f_sqr_norm.push_back(InnerProduct(embedding[i].data(), embedding[i].data(), dim_));
     }
     coeff[x].resize(label.size());
 
     for (int i = 0; i < EPOCHS; ++i)
-        LinearSVM(feature, label, penalty_coeff, margin, &coeff[x], false);
-    for (int i = 0; i < dim_; ++i) {
-        double val = 0;
-        for (int j = 0; j < (int)feature.size(); ++j)
-            val += coeff[x][j] * feature[j]->at(i);
-        embedding[x][i] = val;
-    }
+        LinearSVM(feature, f_sqr_norm, label, penalty_coeff, margin, &coeff[x], &embedding[x], dim_, false);
+
     std::uniform_real_distribution<double> dist(-1 / sqrt(dim_), 1 / sqrt(dim_));
     for (int j = 0; j < dim_; ++j)
         embedding[x][j] += dist(gen);
+    sqr_norm[x] = InnerProduct(embedding[x].data(), embedding[x].data(), dim_);
     estimated[x] = true;
 }
 
@@ -67,10 +66,11 @@ SequentialFiniteEmbedding::SequentialFiniteEmbedding(const Graph& graph, const G
     regularizer_(regularizer) {
     embedding.resize(size_);
     for (int i = 0; i < size_; ++i)
-        embedding[i].resize(dim_);
+        embedding[i].resize(dim_, 0);
 
     coeff.resize(size_);
     estimated.resize(size_, false);
+    sqr_norm.resize(size_, 0);
 
     std::vector<int> order(size_);
     for (int j = 0; j < size_; ++j)
@@ -81,7 +81,7 @@ SequentialFiniteEmbedding::SequentialFiniteEmbedding(const Graph& graph, const G
 }
 
 double SequentialFiniteEmbedding::Evaluate(int x, int y) {
-    return InnerProduct(embedding[x], embedding[y]);
+    return InnerProduct(embedding[x].data(), embedding[y].data(), dim_);
 }
 
 Model* GetSequentialFiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer) {
