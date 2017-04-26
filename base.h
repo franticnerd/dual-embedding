@@ -12,6 +12,7 @@ struct Matrix {
 struct Graph {
     int size;
     std::vector<std::vector<int>> edge;
+    Graph() : size(0) {}
     Graph(int size_) : size(size_) {
         edge.resize(size);
     }
@@ -33,15 +34,16 @@ class Model {
     virtual double Evaluate(int x, int y) = 0;
 };
 
-void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* train, Graph* test);
 Model* GetFiniteEmbedding(const Graph& postive, const Graph& negative, int dimension, double neg_penalty, double regularizer, double deg_norm_pow);
 Model* GetSequentialFiniteEmbedding(const Graph& positive, const Graph& negative, int dimension, double neg_penalty, double regularizer);
 Model* GetFiniteContrastEmbedding(const Graph& positive, const Graph& negative, int sample_ratio, int dimension, double regularizer, double deg_norm_pow);
 Model* GetKernelEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow);
 Model* GetSparseEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow);
+Model* GetCommonNeighbor(const Graph& base, double normalizer);
 void SampleNegativeGraphUniform(const Graph& positive, Graph* negative);
 void SampleNegativeGraphPreferential(const Graph& positive, Graph* negative, double p);
 void SampleNegativeGraphLocal(const Graph& positive, Graph* negative);
 void RemoveRedundant(const Graph& positive, Graph* negative);
 
-Model* GetCommonNeighbor(const Graph& base, double normalizer);
+void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* graph);
+

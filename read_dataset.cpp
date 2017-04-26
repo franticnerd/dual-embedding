@@ -6,27 +6,21 @@
 #include <sstream>
 #include <map>
 
-void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* train, Graph* test) {
-    std::ifstream fin(nodefile);
+void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* graph) {
     std::map<std::string, int> index_map;
-    std::map<int, std::string> word_map;
     char buffer[256];
     int index = 0;
-    while (fin.getline(buffer, 256)) {
-        word_map[index] = std::string(buffer);
+
+    std::ifstream fin(nodefile);
+    while (fin.getline(buffer, 256))
         index_map[std::string(buffer)] = index++;
-    }
 
     std::ifstream fin2(edgefile);
     char w1[256], w2[256];
     double weight;
-    //*train = Graph(index);
-    //*test = Graph(index);
-    *train = Graph(3000);
-    *test = Graph(3000);
+    *graph = Graph(index);
 
-    int e_index = 0;
-    
+    int e_index = 0;    
     while (fin2.getline(buffer, 256)) {
         std::istringstream is(buffer);
         is.getline(w1, 256, '\t');
@@ -34,13 +28,11 @@ void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph
         is >> weight;
         int w1_index = index_map[std::string(w1)];
         int w2_index = index_map[std::string(w2)];
-        if (w1_index < w2_index && w2_index < 3000) {
-            if (((++e_index) % 4) != 0)
-                train->AddEdge(w1_index, w2_index);
-            else
-                test->AddEdge(w1_index, w2_index);
+        if (w1_index < w2_index) {
+            graph->AddEdge(w1_index, w2_index);
+            ++e_index;
         }
     }
 
-    std::cout << "Total Edges: " << e_index << "\n";
+    std::cout << "Node File: " << nodefile << "; Edge File: " << edgefile << "; Total Edges: " << e_index << "\n";
 }
