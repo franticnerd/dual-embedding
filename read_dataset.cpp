@@ -36,3 +36,29 @@ void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph
 
     std::cout << "Node File: " << nodefile << "; Edge File: " << edgefile << "; Total Edges: " << e_index << "\n";
 }
+
+void ReadLabel(const std::string& nodefile, const std::string& labelfile, Label* label) {
+    std::map<std::string, int> index_map;
+    char buffer[256];
+    int index = 0;
+
+    std::ifstream fin(nodefile);
+    while (fin.getline(buffer, 256))
+        index_map[std::string(buffer)] = index++;
+
+    std::ifstream fin2(labelfile);
+    char w1[256], w2[256];
+    *label = Label(index);
+
+    int e_index = 0;
+    while (fin2.getline(buffer, 256)) {
+        std::istringstream is(buffer);
+        is.getline(w1, 256, '\t');
+        is >> w2;
+        int w1_index = index_map[std::string(w1)];
+        int w2_index = std::stoi(std::string(w2));
+        label->SetLabel(w1_index, w2_index - 1);
+    }
+
+    std::cout << "Node File: " << nodefile << "; Label File: " << labelfile << "; Total Labels: " << label->card << "\n";
+}

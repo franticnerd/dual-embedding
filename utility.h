@@ -22,4 +22,4 @@ inline double InnerProduct(const double* x, const double* y, int dim) {
 }
 
 double EvaluateF1(const std::vector<double>& positive, const std::vector<double>& negative);
-double EvaluateMAP(const std::vector<double>& positive, const std::vector<double>& negative);
+double EvaluateAveragePrecision(const std::vector<double>& positive, const std::vector<double>& negative);

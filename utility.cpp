@@ -41,7 +41,7 @@ double EvaluateF1(const std::vector<double>& positive, const std::vector<double>
     return (precision * recall) / (precision + recall) * 2;
 }
 
-double EvaluateMAP(const std::vector<double>& positive, const std::vector<double>& negative) {
+double EvaluateAveragePrecision(const std::vector<double>& positive, const std::vector<double>& negative) {
     std::vector<std::pair<double, int>> combine;
     for (double p : positive)
         combine.push_back(std::make_pair(-p, 1));

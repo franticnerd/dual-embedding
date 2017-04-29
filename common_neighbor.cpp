@@ -1,5 +1,6 @@
 #include "base.h"
 #include <set>
+#include <vector>
 #include <cmath>
 
 class CommonNeighbor : public Model {
@@ -21,6 +22,28 @@ class CommonNeighbor : public Model {
     }
 };
 
+class AdamicAdar : public Model {
+    Graph base_;
+    std::vector<int> cnt_;
+  public:
+    AdamicAdar(const Graph& base) : base_(base), cnt_(base.size, 0) {}
+    double Evaluate(int x, int y) {
+        for (int p : base_.edge[x])
+            cnt_[p] = 1;
+        double val = 0;
+        for (int p : base_.edge[y])
+            if (cnt_[p] == 1)
+                val += 1 / log(base_.edge[p].size());
+        for (int p : base_.edge[x])
+            cnt_[p] = 0;
+        return val;
+    }
+};
+
 Model* GetCommonNeighbor(const Graph& base, double normalizer) {
     return new CommonNeighbor(base, normalizer);
+}
+
+Model* GetAdamicAdar(const Graph& base) {
+    return new AdamicAdar(base);
 }

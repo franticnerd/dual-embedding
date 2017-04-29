@@ -27,11 +27,21 @@ struct Edge {
     Edge(int x_, int y_) : x(x_), y(y_) {}
 };
 
+struct Label {
+    int card, size;
+    std::vector<int> label;
+    Label() {}
+    Label(int size_) : card(0), size(size_), label(size_, -1) {}
+    void SetLabel(int x, int l) { label[x] = l; card = (l >= card ? l + 1 : card); }
+};
+
 class Model {
+    std::vector<double> null_;
   public:
     Model() {}
     virtual ~Model() {}
-    virtual double Evaluate(int x, int y) = 0;
+    virtual double Evaluate(int x, int y) { return 0; }
+    virtual const std::vector<double>& GetEmbedding(int x) { return null_; }
 };
 
 Model* GetFiniteEmbedding(const Graph& postive, const Graph& negative, int dimension, double neg_penalty, double regularizer, double deg_norm_pow);
@@ -40,10 +50,13 @@ Model* GetFiniteContrastEmbedding(const Graph& positive, const Graph& negative, 
 Model* GetKernelEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow);
 Model* GetSparseEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow);
 Model* GetCommonNeighbor(const Graph& base, double normalizer);
+Model* GetAdamicAdar(const Graph& base);
+Model* GetLabelPropagation(const Graph& base, const Label& label);
 void SampleNegativeGraphUniform(const Graph& positive, Graph* negative);
 void SampleNegativeGraphPreferential(const Graph& positive, Graph* negative, double p);
 void SampleNegativeGraphLocal(const Graph& positive, Graph* negative);
 void RemoveRedundant(const Graph& positive, Graph* negative);
 
 void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* graph);
+void ReadLabel(const std::string& nodefile, const std::string& labelfile, Graph* graph);
 

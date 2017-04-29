@@ -52,7 +52,7 @@ class Predefined : public Model {
     }
 };
 
-double EvaluateMAP(Model* model, const Graph& pos, const Graph& neg) {
+double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg) {
     std::vector<double> p, n;
     for (int i = 0; i < pos.size; ++i)
         for (int y : pos.edge[i])
@@ -60,13 +60,13 @@ double EvaluateMAP(Model* model, const Graph& pos, const Graph& neg) {
     for (int i = 0; i < neg.size; ++i)
         for (int y : neg.edge[i])
             n.push_back(model->Evaluate(i, y));
-    return EvaluateMAP(p, n);
+    return EvaluateAveragePrecision(p, n);
 }
 
 void EvaluateAll(Model* model, const Graph& train_pos, const Graph& train_neg, const Graph& test_pos, const Graph& test_neg) {
     double v, cnt;
-    std::cout << "Test MAP\n" << EvaluateMAP(model, test_pos, test_neg) << "\n";
-    std::cout << "Empirical MAP\n" << EvaluateMAP(model, train_pos, train_neg) << "\n";
+    std::cout << "Test Average Precision\n" << EvaluateAveragePrecision(model, test_pos, test_neg) << "\n";
+    std::cout << "Empirical Average Precision\n" << EvaluateAveragePrecision(model, train_pos, train_neg) << "\n";
     std::cout << "Empirical Hinge Loss(Positive)\n";
     v = cnt = 0;
     for (int i = 0; i < train_pos.size; ++i)
@@ -159,13 +159,13 @@ void EvalPredefined(const Graph& train, const Graph& neg_train, const Graph& tes
     std::cout << "Training Predefined\n";
     model.reset(new Predefined("vec-filter.txt"));
     std::cout << "Evaluating Predefined\n";
-    std::cout << EvaluateMAP(model.get(), test, neg_test) << "\n";
+    std::cout << EvaluateAveragePrecision(model.get(), test, neg_test) << "\n";
 }
 
 void EvalRandom(const Graph& test, const Graph& neg_test) {
     std::unique_ptr<Model> model(new Random());
     std::cout << "Evaluating Random\n";
-    std::cout << EvaluateMAP(model.get(), test, neg_test) << "\n";
+    std::cout << EvaluateAveragePrecision(model.get(), test, neg_test) << "\n";
 }
 
 int main() {
