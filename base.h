@@ -62,7 +62,7 @@ void RemoveRedundant(const Graph& positive, Graph* negative);
 
 double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg);
 double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer);
-double EvaluateF1LabelPropagation(Model* model, const Label& train, const Label& test);
+double EvaluateF1LabelPropagation(Model* model, const Label& test);
 void EvaluateAll(Model* model, const Graph& train_pos, const Graph& train_neg, const Graph& test_pos, const Graph& test_neg);
 
 void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* graph);

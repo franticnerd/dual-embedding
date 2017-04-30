@@ -112,6 +112,16 @@ void EvalPredefined(const EvaluateConfig& config) {
     }
 }
 
+void EvalLabelPropagation(const EvaluateConfig& config) {
+    std::unique_ptr<Model> model;
+    std::cout << "Training Label Propagation\n";
+    model.reset(GetLabelPropagation(config.train, config.train_label));
+    if (config.predict_label) {
+        std::cout << "Evaluating Label Prediction\n";
+        std::cout << EvaluateF1LabelPropagation(model.get(), config.test_label) << "\n";
+    }
+}
+
 void EvalRandom(const EvaluateConfig& config) {
     std::cout << "Training Random\n";
     std::unique_ptr<Model> model(GetRandom());
@@ -122,7 +132,7 @@ void EvalRandom(const EvaluateConfig& config) {
 }
 
 int main() {
-    int test_case = 0;
+    int test_case = 1;
 
     EvaluateConfig config;
     std::cout << "Reading Dataset\n";
@@ -147,6 +157,12 @@ int main() {
         ReadLabel("blog-node.txt", "blog-label-test.txt", &config.test_label);
         config.predict_edge = false;
         config.predict_label = true;
+
+        config.finite_dim = 100; config.finite_neg_penalty = 0.03; config.finite_regularizer = 30;
+        config.finite_contrast_sample_ratio = 6; config.finite_contrast_dim = 100; config.finite_contrast_regularizer = 100;
+        config.kernel_neg_penalty = 0.03; config.kernel_regularizer = 30;
+        config.sparse_neg_penalty = 0.015; config.sparse_regularizer = 15;
+        config.sequential_dim = 100; config.sequential_neg_penalty = 0.1; config.sequential_regularizer = 2;
         break;
     }
 
@@ -166,9 +182,10 @@ int main() {
     //EvalKernelEmbedding(train, neg_train, test, neg_test);
     //EvalSparseEmbedding(train, neg_empty, test, neg_test);
     //EvalSequentialEmbedding(train, neg_train, test, neg_test);
-    EvalCommonNeighbor(config);
-    EvalPredefined(config);
-    EvalRandom(config);
+    //EvalCommonNeighbor(config);
+    //EvalPredefined(config);
+    EvalLabelPropagation(config);
+    //EvalRandom(config);
 
     system("pause");
 }

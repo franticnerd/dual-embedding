@@ -70,18 +70,18 @@ double EvaluateF1(Model* model, const Label& train, const Label& test, double re
     return ave_f1;
 }
 
-double EvaluateF1LabelPropagation(Model* model, const Label& train, const Label& test) {
+double EvaluateF1LabelPropagation(Model* model, const Label& test) {
     double ave_f1 = 0;
-    for (int a = 0; a < train.card; ++a) {
+    for (int a = 0; a < test.card; ++a) {
         std::vector<double> p, n;
-        for (int i = 0; i < train.size; ++i)
+        for (int i = 0; i < test.size; ++i)
             if (test.label[i] == a)
                 p.push_back(model->GetEmbedding(i)[a]);
             else if (test.label[i] != -1)
                 n.push_back(model->GetEmbedding(i)[a]);
         ave_f1 += EvaluateF1(p, n);
     }
-    ave_f1 /= train.card;
+    ave_f1 /= test.card;
     return ave_f1;
 }
 
