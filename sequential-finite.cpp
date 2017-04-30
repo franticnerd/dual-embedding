@@ -28,7 +28,7 @@ public:
 };
 
 void SequentialFiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negative, int x) {
-    std::vector<double*> feature;
+    std::vector<const double*> feature;
     std::vector<int> label;
     std::vector<double> penalty_coeff, margin, f_sqr_norm;
     for (int i : positive.edge[x])

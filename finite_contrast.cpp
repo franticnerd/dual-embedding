@@ -37,7 +37,7 @@ public:
 void FiniteContrastEmbedding::UpdateEmbedding(const ContrastEdgeAdjacencyList& table, int x) {
     double deg_norm = pow(std::max((int)table[x].size(), 1), deg_norm_pow_);
 
-    std::vector<double*> feature;
+    std::vector<const double*> feature;
     std::vector<int> label;
     std::vector<double> margin, penalty_coeff, f_sqr_norm;
     for (const ContrastEdgePair& pair : table[x]) {

@@ -9,7 +9,7 @@
 #define INFTY 1e10
 
 // Dual Coordinate Descent
-void LinearSVM(const std::vector<double*>& feature, const std::vector<double>& feature_sqr_norm, const std::vector<int>& label,
+void LinearSVM(const std::vector<const double*>& feature, const std::vector<double>& feature_sqr_norm, const std::vector<int>& label,
     const std::vector<double>& penalty_coeff, const std::vector<double>& margin, std::vector<double>* coeff, 
     std::vector<double>* w, int dim, bool l2) {
     int feature_size = feature.size();

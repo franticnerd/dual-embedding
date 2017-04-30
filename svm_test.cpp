@@ -30,7 +30,7 @@ void LinearSVMTest() {
     feature_vec.push_back(MakeFeature(-1, -1, -1)); label.push_back(-1); sqr_norm.push_back(3);
     feature_vec.push_back(MakeFeature(-2, -2, -3)); label.push_back(-1); sqr_norm.push_back(17);
 
-    std::vector<double*> feature_ptr;
+    std::vector<const double*> feature_ptr;
     for (int i = 0; i < (int)label.size(); ++i)
         feature_ptr.push_back(feature_vec[i].data());
     std::vector<double> coeff(4, 0), margin(4, 1), penalty_coeff(4, 1000), w(4, 0);

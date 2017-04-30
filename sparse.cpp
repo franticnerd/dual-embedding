@@ -58,7 +58,7 @@ void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         sqr_norm.push_back(InnerProduct(vec.data(), vec.data(), vec.size()));
         feature.push_back(std::move(vec));
     }
-    std::vector<double*> feature_ptr;
+    std::vector<const double*> feature_ptr;
     for (int i = 0; i < (int)instance.size(); ++i)
         feature_ptr.push_back(feature[i].data());
 

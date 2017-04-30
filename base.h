@@ -51,12 +51,20 @@ Model* GetKernelEmbedding(const Graph& postive, const Graph& negative, double ne
 Model* GetSparseEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow);
 Model* GetCommonNeighbor(const Graph& base, double normalizer);
 Model* GetAdamicAdar(const Graph& base);
+Model* GetPredefined(const std::string& filename);
+Model* GetRandom();
 Model* GetLabelPropagation(const Graph& base, const Label& label);
+
 void SampleNegativeGraphUniform(const Graph& positive, Graph* negative);
 void SampleNegativeGraphPreferential(const Graph& positive, Graph* negative, double p);
 void SampleNegativeGraphLocal(const Graph& positive, Graph* negative);
 void RemoveRedundant(const Graph& positive, Graph* negative);
 
+double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg);
+double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer);
+double EvaluateF1LabelPropagation(Model* model, const Label& train, const Label& test);
+void EvaluateAll(Model* model, const Graph& train_pos, const Graph& train_neg, const Graph& test_pos, const Graph& test_neg);
+
 void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* graph);
-void ReadLabel(const std::string& nodefile, const std::string& labelfile, Graph* graph);
+void ReadLabel(const std::string& nodefile, const std::string& labelfile, Label* label);
 

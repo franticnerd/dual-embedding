@@ -28,7 +28,7 @@ class FiniteEmbedding : public Model {
 void FiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negative, int x) {
     double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), deg_norm_pow_);
 
-    std::vector<double*> feature;
+    std::vector<const double*> feature;
     std::vector<int> label;
     std::vector<double> penalty_coeff, margin, f_sqr_norm;
     for (int i : positive.edge[x]) {
