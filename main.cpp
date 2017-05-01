@@ -29,6 +29,9 @@ struct EvaluateConfig {
     // Common Neighbor parameters
     double normalizer;
 
+    // Label Prediction parameters
+    double svm_regularizer;
+
     // Predefined parameters
     std::string filename;
 };
@@ -43,7 +46,8 @@ void EvalFiniteEmbedding(const EvaluateConfig& config) {
     }
     if (config.predict_label) {
         std::cout << "Evaluating Label Prediction\n";
-        std::cout << "Average F1:" << EvaluateF1(model.get(), config.train_label, config.test_label, 1) << "\n";
+        std::cout << "Average F1:" << EvaluateF1(model.get(), config.train_label, config.test_label, config.svm_regularizer) << "\n";
+        std::cout << "Average F1 (Train):" << EvaluateF1(model.get(), config.train_label, config.train_label, config.svm_regularizer) << "\n";
     }
 }
 
@@ -57,7 +61,7 @@ void EvalFiniteContrastEmbedding(const EvaluateConfig& config) {
     }
     if (config.predict_label) {
         std::cout << "Evaluating Label Prediction\n";
-        std::cout << "Average F1:" << EvaluateF1(model.get(), config.train_label, config.test_label, 1) << "\n";
+        std::cout << "Average F1:" << EvaluateF1(model.get(), config.train_label, config.test_label, config.svm_regularizer) << "\n";
     }
 }
 
@@ -98,7 +102,7 @@ void EvalCommonNeighbor(const EvaluateConfig& config) {
     model.reset(GetCommonNeighbor(config.train, config.normalizer));
     if (config.predict_edge) {
         std::cout << "Evaluating Link Prediction\n";
-        EvaluateAll(model.get(), config.train, config.neg_train, config.test, config.neg_test);
+        std::cout << EvaluateAveragePrecision(model.get(), config.test, config.neg_test) << "\n";
     }
 }
 
@@ -109,6 +113,10 @@ void EvalPredefined(const EvaluateConfig& config) {
     if (config.predict_edge) {
         std::cout << "Evaluating Link Prediction\n";
         std::cout << EvaluateAveragePrecision(model.get(), config.test, config.neg_test) << "\n";
+    }
+    if (config.predict_label) {
+        std::cout << "Evaluating Label Prediction\n";
+        std::cout << "Average F1:" << EvaluateF1(model.get(), config.train_label, config.test_label, 1) << "\n";
     }
 }
 
@@ -152,10 +160,11 @@ int main() {
         config.filename = "vec-filter.txt";
         break;
     case 1:
-        ReadDataset("blog-node.txt", "blog-edge.txt", &config.train);
+        ReadDataset("blog-node.txt", "blog-edge-train.txt", &config.train);
+        ReadDataset("blog-node.txt", "blog-edge-val.txt", &config.test);
         ReadLabel("blog-node.txt", "blog-label-train.txt", &config.train_label);
-        ReadLabel("blog-node.txt", "blog-label-test.txt", &config.test_label);
-        config.predict_edge = false;
+        ReadLabel("blog-node.txt", "blog-label-val.txt", &config.test_label);
+        config.predict_edge = true;
         config.predict_label = true;
 
         config.finite_dim = 100; config.finite_neg_penalty = 0.03; config.finite_regularizer = 30;
@@ -163,6 +172,7 @@ int main() {
         config.kernel_neg_penalty = 0.03; config.kernel_regularizer = 30;
         config.sparse_neg_penalty = 0.015; config.sparse_regularizer = 15;
         config.sequential_dim = 100; config.sequential_neg_penalty = 0.1; config.sequential_regularizer = 2;
+        config.svm_regularizer = 0.1;
         break;
     }
 
@@ -178,11 +188,11 @@ int main() {
     RemoveRedundant(config.test, &config.neg_test);
 
     EvalFiniteEmbedding(config);
-    EvalFiniteContrastEmbedding(config);
+    //EvalFiniteContrastEmbedding(config);
     //EvalKernelEmbedding(train, neg_train, test, neg_test);
     //EvalSparseEmbedding(train, neg_empty, test, neg_test);
     //EvalSequentialEmbedding(train, neg_train, test, neg_test);
-    //EvalCommonNeighbor(config);
+    EvalCommonNeighbor(config);
     //EvalPredefined(config);
     EvalLabelPropagation(config);
     //EvalRandom(config);

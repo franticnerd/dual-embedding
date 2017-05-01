@@ -46,20 +46,19 @@ double EvaluateF1(Model* model, const Label& train, const Label& test, double re
             std::vector<double> w(dim, 0);
             LinearSVM(train_vec, norm, label, penalty_coeff, margin, &coeff, &w, dim, false);
 
-            for (int i = 0; i < train.size; ++i)
-                if (train.label[i] == -1) {
-                    double v = InnerProduct(vec[i], w.data(), dim);
-                    if (v > 0)
-                        label_prediction[i][a] ++;
-                    else
-                        label_prediction[i][b] ++;
-                }
+            for (int i = 0; i < train.size; ++i) {
+                double v = InnerProduct(vec[i], w.data(), dim);
+                if (v > 0)
+                    label_prediction[i][a] ++;
+                else
+                    label_prediction[i][b] ++;
+            }
         }
 
     double ave_f1 = 0;
-    for (int a = 0; a < train.card; ++a) {
+    for (int a = 0; a < test.card; ++a) {
         std::vector<double> p, n;
-        for (int i = 0; i < train.size; ++i)
+        for (int i = 0; i < test.size; ++i)
             if (test.label[i] == a)
                 p.push_back(label_prediction[i][a]);
             else if (test.label[i] != -1)

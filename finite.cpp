@@ -23,6 +23,7 @@ class FiniteEmbedding : public Model {
   public:
     FiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer, double neg_norm_pow);
     double Evaluate(int x, int y);
+    const std::vector<double>& GetEmbedding(int x) { return embedding[x]; }
 };
 
 void FiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negative, int x) {

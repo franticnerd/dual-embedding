@@ -24,7 +24,7 @@ double EvaluateF1(const std::vector<double>& positive, const std::vector<double>
     for (double p : negative)
         combine.push_back(p);
     sort(combine.begin(), combine.end());
-    double cutoff, eps = 1e-4;
+    double cutoff = combine[0], eps = 1e-4;
     for (int i = combine.size() - 1; i >= (int)negative.size(); --i)
         if (combine[i] >= combine[0] + eps)
             cutoff = combine[i];
@@ -38,6 +38,8 @@ double EvaluateF1(const std::vector<double>& positive, const std::vector<double>
             ++neg_in_range;
     double precision = (double)pos_in_range / (double)(pos_in_range + neg_in_range);
     double recall = (double)pos_in_range / (double)positive.size();
+    if (precision < 1e-5 || recall < 1e-5)
+        return 0;
     return (precision * recall) / (precision + recall) * 2;
 }
 

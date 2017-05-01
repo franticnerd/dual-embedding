@@ -3,3 +3,4 @@
 void SVMTest();
 void UtilityTest();
 void EmbeddingTest();
+void EvaluateTest();

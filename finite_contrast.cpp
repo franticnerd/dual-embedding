@@ -32,6 +32,7 @@ class FiniteContrastEmbedding : public Model {
 public:
     FiniteContrastEmbedding(const Graph& graph, const Graph& negative, int sample_ratio, int dimension, double regularizer, double deg_norm_pow);
     double Evaluate(int x, int y);
+    const std::vector<double>& GetEmbedding(int x) { return embedding[x]; }
 };
 
 void FiniteContrastEmbedding::UpdateEmbedding(const ContrastEdgeAdjacencyList& table, int x) {
