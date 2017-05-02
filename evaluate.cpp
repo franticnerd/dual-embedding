@@ -5,6 +5,13 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <random>
+
+namespace {
+    std::mt19937 gen;
+}   // anonymous namespace
+
+#define EPOCHS 1000
 
 double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg) {
     std::vector<double> p, n;
@@ -17,54 +24,59 @@ double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg
     return EvaluateAveragePrecision(p, n);
 }
 
-double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer) {
+double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer, int sample_ratio) {
+    int dim = model->GetEmbedding(0).size();
     std::vector<const double*> vec;
     for (int i = 0; i < train.size; ++i)
         vec.push_back(model->GetEmbedding(i).data());
-    std::vector<std::vector<int>> label_prediction(train.size);
+    std::vector<double> v_norm(train.size, 0);
     for (int i = 0; i < train.size; ++i)
-        label_prediction[i].resize(train.card, 0);
-    for (int a = 0; a < train.card; ++a)
-        for (int b = a + 1; b < train.card; ++b) {
+        v_norm[i] = sqrt(InnerProduct(vec[i], vec[i], dim));
 
-            std::vector<const double*> train_vec;
-            std::vector<double> norm, penalty_coeff, margin;
-            std::vector<int> label;
-            int dim = model->GetEmbedding(0).size();
+    std::uniform_int_distribution<int> dist(0, train.size - 1);
+    double ave_f1 = 0;
 
-            for (int i = 0; i < train.size; ++i) {
-                if (train.label[i] == a || train.label[i] == b) {
-                    train_vec.push_back(vec[i]);
-                    norm.push_back(InnerProduct(vec[i], vec[i], dim));
-                    label.push_back((train.label[i] == a ? 1 : -1));
-                    penalty_coeff.push_back(1 / regularizer);
-                    margin.push_back(1);
-                }
-            }
+    for (int a = 0; a < train.card; ++a) {
+        std::vector<std::vector<double>> train_vec;
+        std::vector<double> norm, penalty_coeff, margin;
+        std::vector<int> label;
+        for (int i = 0; i < train.size; ++i)
+        if (train.label[i] == a) {
+            for (int j = 0; j < sample_ratio; ++j) {
+                int t = dist(gen);
+                std::vector<double> feature_vec(dim);
+                for (int k = 0; k < dim; ++k) 
+                    feature_vec[k] = vec[i][k] / std::max(v_norm[i], 1e-4) - vec[t][k] / std::max(v_norm[t], 1e-4);
 
-            std::vector<double> coeff(train_vec.size(), 0);
-            std::vector<double> w(dim, 0);
-            LinearSVM(train_vec, norm, label, penalty_coeff, margin, &coeff, &w, dim, false);
-
-            for (int i = 0; i < train.size; ++i) {
-                double v = InnerProduct(vec[i], w.data(), dim);
-                if (v > 0)
-                    label_prediction[i][a] ++;
-                else
-                    label_prediction[i][b] ++;
+                norm.push_back(InnerProduct(feature_vec.data(), feature_vec.data(), dim));
+                label.push_back(1);
+                penalty_coeff.push_back(1 / regularizer);
+                margin.push_back(1);
+                train_vec.push_back(std::move(feature_vec));
             }
         }
 
-    double ave_f1 = 0;
-    for (int a = 0; a < test.card; ++a) {
+        std::vector<const double*> ptr_vec;
+        for (int i = 0; i < (int)train_vec.size(); ++i)
+            ptr_vec.push_back(train_vec[i].data());
+
+        std::vector<double> coeff(train_vec.size(), 0), w(dim, 0), label_prediction(train.size);
+        for (int i = 0; i < EPOCHS; ++i)
+            LinearSVM(ptr_vec, norm, label, penalty_coeff, margin, &coeff, &w, dim, false);
+
+        for (int i = 0; i < train.size; ++i)
+            label_prediction[i] = InnerProduct(vec[i], w.data(), dim) / v_norm[i];
+
         std::vector<double> p, n;
         for (int i = 0; i < test.size; ++i)
             if (test.label[i] == a)
-                p.push_back(label_prediction[i][a]);
+                p.push_back(label_prediction[i]);
             else if (test.label[i] != -1)
-                n.push_back(label_prediction[i][a]);
+                n.push_back(label_prediction[i]);
+
         ave_f1 += EvaluateF1(p, n);
     }
+
     ave_f1 /= train.card;
     return ave_f1;
 }
