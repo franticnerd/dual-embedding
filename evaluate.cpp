@@ -12,6 +12,59 @@ namespace {
 }   // anonymous namespace
 
 #define EPOCHS 1000
+#define LINK_EPOCHS 20
+
+double EvaluatePredictedAP(Model* model, const Graph& train, const Graph& pos, const Graph& neg, double regularizer, int sample_ratio) {
+    int dim = model->GetEmbedding(0).size();
+    std::uniform_int_distribution<int> dist(0, train.size - 1);
+
+    std::vector<std::vector<double>> vec;
+    std::vector<double> norm, penalty_coeff, margin;
+    std::vector<int> label;
+    for (int x = 0; x < train.size; ++x)
+        for (int y : train.edge[x]) {
+            std::vector<double> edge_vec(dim);
+            for (int j = 0; j < dim; ++j)
+                edge_vec[j] = model->GetEmbedding(x)[j] * model->GetEmbedding(y)[j];
+            for (int i = 0; i < sample_ratio; ++i) {
+                std::vector<double> contrast(dim);
+                int xp = dist(gen), yp = dist(gen);
+                for (int j = 0; j < dim; ++j)
+                    contrast[j] = edge_vec[j] - model->GetEmbedding(xp)[j] * model->GetEmbedding(yp)[j];
+                norm.push_back(InnerProduct(contrast.data(), contrast.data(), dim));
+                label.push_back(1);
+                penalty_coeff.push_back(1 / regularizer);
+                margin.push_back(1);
+                vec.push_back(std::move(contrast));
+            }           
+        }
+
+    std::vector<double> coeff(vec.size(), 0), w(dim, 0);
+    std::vector<const double*> ptr_vec;
+    for (int i = 0; i < (int)vec.size(); ++i)
+        ptr_vec.push_back(vec[i].data());
+
+    for (int i = 0; i < LINK_EPOCHS; ++i)
+        LinearSVM(ptr_vec, norm, label, penalty_coeff, margin, &coeff, &w, dim, false);
+
+    std::vector<double> p, n;
+    for (int x = 0; x < train.size; ++x)
+        for (int y : pos.edge[x]) {
+            std::vector<double> edge_vec(dim);
+            for (int j = 0; j < dim; ++j)
+                edge_vec[j] = model->GetEmbedding(x)[j] * model->GetEmbedding(y)[j];
+            p.push_back(InnerProduct(edge_vec.data(), w.data(), dim));
+        }
+
+    for (int x = 0; x < train.size; ++x)
+        for (int y : neg.edge[x]) {
+            std::vector<double> edge_vec(dim);
+            for (int j = 0; j < dim; ++j)
+                edge_vec[j] = model->GetEmbedding(x)[j] * model->GetEmbedding(y)[j];
+            n.push_back(InnerProduct(edge_vec.data(), w.data(), dim));
+        }
+    return EvaluateAveragePrecision(p, n);
+}
 
 double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg) {
     std::vector<double> p, n;

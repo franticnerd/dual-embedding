@@ -33,8 +33,12 @@ struct EvaluateConfig {
     double svm_regularizer;
     int svm_sample_ratio;
 
+    // Link Prediction parameters
+    double link_svm_regularizer;
+    int link_svm_sample_ratio;
+
     // Predefined parameters
-    std::string filename;
+    std::string node_file, embedding_file;
 };
 
 void EvalFiniteEmbedding(const EvaluateConfig& config) {
@@ -44,6 +48,7 @@ void EvalFiniteEmbedding(const EvaluateConfig& config) {
     if (config.predict_edge) {
         std::cout << "Evaluating Link Prediction\n";
         EvaluateAll(model.get(), config.train, config.neg_train, config.test, config.neg_test);
+        std::cout << "Predicted AP: " << EvaluatePredictedAP(model.get(), config.train, config.test, config.neg_test, config.link_svm_regularizer, config.link_svm_sample_ratio) << "\n";
     }
     if (config.predict_label) {
         std::cout << "Evaluating Label Prediction\n";
@@ -59,6 +64,7 @@ void EvalFiniteContrastEmbedding(const EvaluateConfig& config) {
     if (config.predict_edge) {
         std::cout << "Evaluating Link Prediction\n";
         EvaluateAll(model.get(), config.train, config.neg_train, config.test, config.neg_test);
+        std::cout << "Predicted AP: " << EvaluatePredictedAP(model.get(), config.train, config.test, config.neg_test, config.link_svm_regularizer, config.link_svm_sample_ratio) << "\n";
     }
     if (config.predict_label) {
         std::cout << "Evaluating Label Prediction\n";
@@ -110,10 +116,11 @@ void EvalCommonNeighbor(const EvaluateConfig& config) {
 void EvalPredefined(const EvaluateConfig& config) {
     std::unique_ptr<Model> model;
     std::cout << "Training Predefined\n";
-    model.reset(GetPredefined(config.filename));
+    model.reset(GetPredefined(config.node_file, config.embedding_file));
     if (config.predict_edge) {
         std::cout << "Evaluating Link Prediction\n";
-        std::cout << EvaluateAveragePrecision(model.get(), config.test, config.neg_test) << "\n";
+        std::cout << "Average Precision: " << EvaluateAveragePrecision(model.get(), config.test, config.neg_test) << "\n";
+        std::cout << "Predicted Average Precision: " << EvaluatePredictedAP(model.get(), config.train, config.test, config.neg_test, config.link_svm_regularizer, config.link_svm_sample_ratio) << "\n";
     }
     if (config.predict_label) {
         std::cout << "Evaluating Label Prediction\n";
@@ -122,6 +129,7 @@ void EvalPredefined(const EvaluateConfig& config) {
 }
 
 void EvalLabelPropagation(const EvaluateConfig& config) {
+    if (!config.predict_label) return;
     std::unique_ptr<Model> model;
     std::cout << "Training Label Propagation\n";
     model.reset(GetLabelPropagation(config.train, config.train_label));
@@ -141,7 +149,7 @@ void EvalRandom(const EvaluateConfig& config) {
 }
 
 int main() {
-    int test_case = 1;
+    int test_case = 0;
 
     EvaluateConfig config;
     std::cout << "Reading Dataset\n";
@@ -157,8 +165,9 @@ int main() {
         config.kernel_neg_penalty = 0.03; config.kernel_regularizer = 30;
         config.sparse_neg_penalty = 0.015; config.sparse_regularizer = 15;
         config.sequential_dim = 100; config.sequential_neg_penalty = 0.1; config.sequential_regularizer = 2;
+        config.link_svm_regularizer = 1; config.link_svm_sample_ratio = 3;
         config.normalizer = 120;
-        config.filename = "vec-filter.txt";
+        config.node_file = "node-w-filter.txt"; config.embedding_file = "vec-filter.txt";
         break;
     case 1:
         ReadDataset("blog-node.txt", "blog-edge-train.txt", &config.train);
@@ -174,7 +183,9 @@ int main() {
         config.sparse_neg_penalty = 0.015; config.sparse_regularizer = 15;
         config.sequential_dim = 100; config.sequential_neg_penalty = 0.1; config.sequential_regularizer = 2;
         config.svm_regularizer = 1; config.svm_sample_ratio = 5;
+        config.link_svm_regularizer = 1; config.link_svm_sample_ratio = 3;
         config.normalizer = 120;
+        config.node_file = "blog-node.txt"; config.embedding_file = "n2vblog-embedding.txt";
         break;
     }
 
@@ -189,14 +200,14 @@ int main() {
     RemoveRedundant(config.train, &config.neg_test);
     RemoveRedundant(config.test, &config.neg_test);
 
-    EvalFiniteEmbedding(config);
-    EvalFiniteContrastEmbedding(config);
+    //EvalFiniteEmbedding(config);
+    //EvalFiniteContrastEmbedding(config);
     //EvalKernelEmbedding(train, neg_train, test, neg_test);
     //EvalSparseEmbedding(train, neg_empty, test, neg_test);
     //EvalSequentialEmbedding(train, neg_train, test, neg_test);
-    EvalCommonNeighbor(config);
-    //EvalPredefined(config);
-    EvalLabelPropagation(config);
+    //EvalCommonNeighbor(config);
+    EvalPredefined(config);
+    //EvalLabelPropagation(config);
     //EvalRandom(config);
 
     system("pause");

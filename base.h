@@ -22,6 +22,20 @@ struct Graph {
     }
 };
 
+struct DGraph {
+    int size;
+    std::vector<std::vector<int>> out_edge, in_edge;
+    DGraph() : size(0) {}
+    DGraph(int size_) : size(size_) {
+        in_edge.resize(size);
+        out_edge.resize(size);
+    }
+    void AddEdge(int x, int y) {
+        out_edge[x].push_back(y);
+        in_edge[y].push_back(x);
+    }
+};
+
 struct Edge {
     int x, y;
     Edge(int x_, int y_) : x(x_), y(y_) {}
@@ -49,9 +63,11 @@ Model* GetSequentialFiniteEmbedding(const Graph& positive, const Graph& negative
 Model* GetFiniteContrastEmbedding(const Graph& positive, const Graph& negative, int sample_ratio, int dimension, double regularizer, double deg_norm_pow);
 Model* GetKernelEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow);
 Model* GetSparseEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow);
+Model* GetDirectedFiniteEmbedding(const DGraph& graph, const DGraph& negative, int dimension, double neg_penalty, double regularizer);
+Model* GetDirectedFiniteContrastEmbedding(const DGraph& graph, const DGraph& negative, int sample_ratio, int dimension, double regularizer);
 Model* GetCommonNeighbor(const Graph& base, double normalizer);
 Model* GetAdamicAdar(const Graph& base);
-Model* GetPredefined(const std::string& filename);
+Model* GetPredefined(const std::string& node_file, const std::string& embedding_file);
 Model* GetRandom();
 Model* GetLabelPropagation(const Graph& base, const Label& label);
 
@@ -60,6 +76,7 @@ void SampleNegativeGraphPreferential(const Graph& positive, Graph* negative, dou
 void SampleNegativeGraphLocal(const Graph& positive, Graph* negative);
 void RemoveRedundant(const Graph& positive, Graph* negative);
 
+double EvaluatePredictedAP(Model* model, const Graph& train, const Graph& pos, const Graph& neg, double regularizer, int sample_ratio);
 double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg);
 double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer, int sample_ratio);
 double EvaluateF1LabelPropagation(Model* model, const Label& test);

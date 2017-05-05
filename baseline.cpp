@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <map>
 
 namespace {
     std::mt19937 gen;
@@ -63,26 +64,42 @@ class Predefined : public Model {
     int n_, dim_;
     std::vector<std::vector<double>> embedding;
 public:
-    Predefined(const std::string& filename) {
-        char buffer[1200];
+    Predefined(const std::string& node_file, const std::string& embedding_file) {
+        std::map<std::string, int> index_map;
+        char buffer[2500];
+        int index = 0;
 
-        std::ifstream fin(filename);
-        fin.getline(buffer, 1200);
+        std::ifstream fin(node_file);
+        while (fin.getline(buffer, 256))
+            index_map[std::string(buffer)] = index++;
+
+        std::ifstream fin2(embedding_file);
+        fin2.getline(buffer, 2500);
         std::istringstream is(buffer);
         is >> n_ >> dim_;
 
-        embedding.resize(n_);
+        embedding.resize(index);
+        for (int i = 0; i < index; ++i)
+            embedding[i].resize(dim_, 0);
+
         for (int i = 0; i < n_; ++i) {
-            embedding[i].resize(dim_);
-            fin.getline(buffer, 1200);
+            fin2.getline(buffer, 2500);
 
             std::istringstream is2(buffer);
             std::string word;
             std::vector<std::string> word_vec;
             while (is2 >> word)
                 word_vec.push_back(word);
+            
+            word = "";
+            for (int j = 0; j < (int)word_vec.size() - dim_; ++j) {
+                if (j != 0) word.append(" ");
+                word.append(word_vec[j]);                
+            }
+            int node_index = index_map.at(word);
+
             for (int j = word_vec.size() - dim_; j < (int)word_vec.size(); ++j)
-                embedding[i].push_back(std::stof(word_vec[j]));
+                embedding[node_index][j - (word_vec.size() - dim_)] = std::stof(word_vec[j]);
         }
     }
     double Evaluate(int x, int y) {
@@ -99,8 +116,8 @@ Model* GetAdamicAdar(const Graph& base) {
     return new AdamicAdar(base);
 }
 
-Model* GetPredefined(const std::string& filename) {
-    return new Predefined(filename);
+Model* GetPredefined(const std::string& node_file, const std::string& embedding_file) {
+    return new Predefined(node_file, embedding_file);
 }
 
 Model* GetRandom() {
