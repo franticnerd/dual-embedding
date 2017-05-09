@@ -33,17 +33,16 @@ void EvaluateF1Test() {
     SampleNegativeGraphUniform(graph, &negative);
     RemoveRedundant(graph, &negative);
     std::unique_ptr<Model> model(GetFiniteEmbedding(graph, negative, 5, 0.2, 1, 0));
-    std::cout << EvaluateF1(model.get(), train, test, 1, 2) << "\n";
-    assert(fabs(EvaluateF1(model.get(), train, test, 1, 2) - 1) < 0.01);
+    std::cout << EvaluateF1(model.get(), train, test, 1, 2, true) << "\n";
+    assert(fabs(EvaluateF1(model.get(), train, test, 1, 2, true) - 1) < 0.01);
 }
 
 void EvaluateF1LabelPropagationTest() {
     Graph graph;
     Label train, test;
     MakeGraphLabel(&graph, &train, &test);
-    std::unique_ptr<Model> model(GetLabelPropagation(graph, train));
-    std::cout << EvaluateF1LabelPropagation(model.get(), test) << "\n";
-    assert(fabs(EvaluateF1LabelPropagation(model.get(), test) - 1) < 0.01);
+    std::cout << EvaluateF1LabelPropagation(graph, train, test) << "\n";
+    assert(fabs(EvaluateF1LabelPropagation(graph, train, test) - 1) < 0.01);
 }
 
 void EvaluateTest() {

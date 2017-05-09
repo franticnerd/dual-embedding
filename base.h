@@ -41,12 +41,29 @@ struct Edge {
     Edge(int x_, int y_) : x(x_), y(y_) {}
 };
 
-struct Label {
-    int card, size;
+struct SingleLabel {
+    int size;
     std::vector<int> label;
+    SingleLabel(int size_) : size(size_), label(size_, -1) {}
+    void SetLabel(int x, int l) {
+        label[x] = l;
+    }
+};
+
+struct Label {
+    int size, card;
+    std::vector<std::vector<int>> label_instance;
+    std::vector<bool> labeled;
     Label() {}
-    Label(int size_) : card(0), size(size_), label(size_, -1) {}
-    void SetLabel(int x, int l) { label[x] = l; card = (l >= card ? l + 1 : card); }
+    Label(int size_) : size(size_), labeled(size_, false) {}
+    void SetLabel(int x, int l) {
+        if (l >= (int)label_instance.size()) {
+            label_instance.resize(l + 1);
+            card = l + 1;
+        }
+        label_instance[l].push_back(x);
+        labeled[x] = true;
+    }
 };
 
 class Model {
@@ -69,17 +86,19 @@ Model* GetCommonNeighbor(const Graph& base, double normalizer);
 Model* GetAdamicAdar(const Graph& base);
 Model* GetPredefined(const std::string& node_file, const std::string& embedding_file);
 Model* GetRandom();
-Model* GetLabelPropagation(const Graph& base, const Label& label);
+Model* GetLabelPropagation(const Graph& base, const SingleLabel& label);
 
 void SampleNegativeGraphUniform(const Graph& positive, Graph* negative);
+void SampleNegativeDGraphUniform(const DGraph& positive, DGraph* negative);
 void SampleNegativeGraphPreferential(const Graph& positive, Graph* negative, double p);
 void SampleNegativeGraphLocal(const Graph& positive, Graph* negative);
 void RemoveRedundant(const Graph& positive, Graph* negative);
+void RemoveRedundant(const DGraph& positive, DGraph* negative);
 
 double EvaluatePredictedAP(Model* model, const Graph& train, const Graph& pos, const Graph& neg, double regularizer, int sample_ratio);
 double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg);
-double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer, int sample_ratio);
-double EvaluateF1LabelPropagation(Model* model, const Label& test);
+double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer, int sample_ratio, bool normalize);
+double EvaluateF1LabelPropagation(const Graph& base, const Label& train, const Label& test);
 void EvaluateAll(Model* model, const Graph& train_pos, const Graph& train_neg, const Graph& test_pos, const Graph& test_neg);
 
 void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* graph);

@@ -17,6 +17,22 @@ void MakeGraph(Graph* graph) {
     graph->AddEdge(5, 6);
 }
 
+void MakeDGraph(DGraph* graph) {
+    *graph = DGraph(8);
+    graph->AddEdge(0, 4);
+    graph->AddEdge(0, 6);
+    graph->AddEdge(0, 7);
+    graph->AddEdge(1, 5);
+    graph->AddEdge(1, 6);
+    graph->AddEdge(1, 7);
+    graph->AddEdge(2, 4);
+    graph->AddEdge(2, 5);
+    graph->AddEdge(2, 7);
+    graph->AddEdge(3, 5);
+    graph->AddEdge(3, 4);
+    graph->AddEdge(3, 6);
+}
+
 void FiniteEmbeddingTest() {
     Graph graph(7);
     MakeGraph(&graph);
@@ -39,6 +55,30 @@ void FiniteContrastEmbeddingTest() {
     std::cout << model->Evaluate(1, 2) << " " << model->Evaluate(2, 6) << " " << model->Evaluate(1, 5) << "\n";
     assert(model->Evaluate(1, 2) > model->Evaluate(2, 6));
     assert(model->Evaluate(1, 2) > model->Evaluate(1, 5));
+}
+
+void DirectedFiniteEmbeddingTest() {
+    DGraph graph(8);
+    MakeDGraph(&graph);
+    DGraph negative(8);
+    SampleNegativeDGraphUniform(graph, &negative);
+    RemoveRedundant(graph, &negative);
+    std::unique_ptr<Model> model(GetDirectedFiniteEmbedding(graph, negative, 5, 0.2, 1));
+    std::cout << model->Evaluate(1, 4) << " " << model->Evaluate(1, 3) << " " << model->Evaluate(5, 1) << "\n";
+    assert(model->Evaluate(1, 4) > model->Evaluate(1, 3));
+    assert(model->Evaluate(1, 4) > model->Evaluate(5, 1));
+}
+
+void DirectedFiniteContrastEmbeddingTest() {
+    DGraph graph(8);
+    MakeDGraph(&graph);
+    DGraph negative(8);
+    SampleNegativeDGraphUniform(graph, &negative);
+    RemoveRedundant(graph, &negative);
+    std::unique_ptr<Model> model(GetDirectedFiniteContrastEmbedding(graph, negative, 3, 5, 1));
+    std::cout << model->Evaluate(0, 5) << " " << model->Evaluate(0, 3) << " " << model->Evaluate(5, 1) << "\n";
+    assert(model->Evaluate(0, 5) > model->Evaluate(0, 3));
+    assert(model->Evaluate(0, 5) > model->Evaluate(5, 1));
 }
 
 void KernelEmbeddingTest() {
@@ -82,5 +122,7 @@ void EmbeddingTest() {
     FiniteContrastEmbeddingTest();
     KernelEmbeddingTest();
     SparseEmbeddingTest();
+    DirectedFiniteEmbeddingTest();
+    DirectedFiniteContrastEmbeddingTest();
     CommonNeighborTest();
 }

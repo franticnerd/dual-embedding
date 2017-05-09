@@ -10,7 +10,7 @@ class LabelPropagation : public Model {
     std::vector<std::vector<double>> embedding_;
     void UpdateEmbedding(const Graph& base, int x);
   public:
-    LabelPropagation(const Graph& base, const Label& label);
+    LabelPropagation(const Graph& base, const SingleLabel& label);
     const std::vector<double>& GetEmbedding(int x) { return embedding_[x]; }
 };
 
@@ -21,9 +21,9 @@ void LabelPropagation::UpdateEmbedding(const Graph& base, int x) {
             embedding_[x][i] += embedding_[y][i] / base.edge[x].size();
 }
 
-LabelPropagation::LabelPropagation(const Graph& base, const Label& label) : 
+LabelPropagation::LabelPropagation(const Graph& base, const SingleLabel& label) : 
     size_(base.size),
-    dim_(label.card),
+    dim_(2),
     embedding_(base.size) {
 
     for (int i = 0; i < size_; ++i) {
@@ -43,6 +43,6 @@ LabelPropagation::LabelPropagation(const Graph& base, const Label& label) :
     }
 }
 
-Model* GetLabelPropagation(const Graph& base, const Label& label) {
+Model* GetLabelPropagation(const Graph& base, const SingleLabel& label) {
     return new LabelPropagation(base, label);
 }

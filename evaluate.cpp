@@ -6,9 +6,11 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include <memory>
+#include <set>
 
 namespace {
-    std::mt19937 gen;
+    std::mt19937 gen(9119);
 }   // anonymous namespace
 
 #define EPOCHS 1000
@@ -77,26 +79,31 @@ double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg
     return EvaluateAveragePrecision(p, n);
 }
 
-double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer, int sample_ratio) {
+double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer, int sample_ratio, bool normalize) {
     int dim = model->GetEmbedding(0).size();
     std::vector<const double*> vec;
     for (int i = 0; i < train.size; ++i)
         vec.push_back(model->GetEmbedding(i).data());
     std::vector<double> v_norm(train.size, 0);
     for (int i = 0; i < train.size; ++i)
-        v_norm[i] = sqrt(InnerProduct(vec[i], vec[i], dim));
+        if (normalize)
+            v_norm[i] = sqrt(InnerProduct(vec[i], vec[i], dim));
+        else
+            v_norm[i] = 1;
 
-    std::uniform_int_distribution<int> dist(0, train.size - 1);
     double ave_f1 = 0;
-
     for (int a = 0; a < train.card; ++a) {
+        std::set<int> positive(test.label_instance[a].begin(), test.label_instance[a].end());
+        std::uniform_int_distribution<int> dist(0, train.size - 1);
+
         std::vector<std::vector<double>> train_vec;
         std::vector<double> norm, penalty_coeff, margin;
         std::vector<int> label;
-        for (int i = 0; i < train.size; ++i)
-        if (train.label[i] == a) {
+        for (int i : train.label_instance[a]) {
             for (int j = 0; j < sample_ratio; ++j) {
                 int t = dist(gen);
+                while (!train.labeled[t] || positive.count(t) > 0)
+                    t = dist(gen);
                 std::vector<double> feature_vec(dim);
                 for (int k = 0; k < dim; ++k) 
                     feature_vec[k] = vec[i][k] / std::max(v_norm[i], 1e-4) - vec[t][k] / std::max(v_norm[t], 1e-4);
@@ -122,9 +129,9 @@ double EvaluateF1(Model* model, const Label& train, const Label& test, double re
 
         std::vector<double> p, n;
         for (int i = 0; i < test.size; ++i)
-            if (test.label[i] == a)
+            if (positive.count(i) > 0)
                 p.push_back(label_prediction[i]);
-            else if (test.label[i] != -1)
+            else if (test.labeled[i])
                 n.push_back(label_prediction[i]);
 
         ave_f1 += EvaluateF1(p, n);
@@ -134,15 +141,25 @@ double EvaluateF1(Model* model, const Label& train, const Label& test, double re
     return ave_f1;
 }
 
-double EvaluateF1LabelPropagation(Model* model, const Label& test) {
+double EvaluateF1LabelPropagation(const Graph& base, const Label& train, const Label& test) {
     double ave_f1 = 0;
     for (int a = 0; a < test.card; ++a) {
+        SingleLabel label(train.size);
+        for (int i = 0; i < train.size; ++i)
+            if (train.labeled[i])
+                label.SetLabel(i, 0);
+        for (int i : train.label_instance[a])
+            label.SetLabel(i, 1);
+
+        std::unique_ptr<Model> model(GetLabelPropagation(base, label));
         std::vector<double> p, n;
+        std::set<int> pos(test.label_instance[a].begin(), test.label_instance[a].end());
         for (int i = 0; i < test.size; ++i)
-            if (test.label[i] == a)
-                p.push_back(model->GetEmbedding(i)[a]);
-            else if (test.label[i] != -1)
-                n.push_back(model->GetEmbedding(i)[a]);
+            if (pos.count(i) > 0)
+                p.push_back(model->GetEmbedding(i)[1]);
+            else if (test.labeled[i])
+                n.push_back(model->GetEmbedding(i)[1]);
+
         ave_f1 += EvaluateF1(p, n);
     }
     ave_f1 /= test.card;
