@@ -5,7 +5,7 @@
 #include <iostream>
 
 #define LINEAR_EPOCHS 2
-#define KERNEL_EPOCHS 10
+#define KERNEL_EPOCHS 4
 #define INFTY 1e10
 
 // Dual Coordinate Descent

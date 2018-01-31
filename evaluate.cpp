@@ -7,13 +7,13 @@
 #include <algorithm>
 #include <random>
 #include <memory>
-#include <set>
+#include <unordered_set>
 
 namespace {
     std::mt19937 gen(9119);
 }   // anonymous namespace
 
-#define EPOCHS 1000
+#define EPOCHS 100
 #define LINK_EPOCHS 20
 
 double EvaluatePredictedAP(Model* model, const Graph& train, const Graph& pos, const Graph& neg, double regularizer, int sample_ratio) {
@@ -79,6 +79,17 @@ double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg
     return EvaluateAveragePrecision(p, n);
 }
 
+double EvaluateAveragePrecision(Model* model, const DGraph& pos, const DGraph& neg) {
+    std::vector<double> p, n;
+    for (int i = 0; i < pos.size; ++i)
+        for (int y : pos.out_edge[i])
+            p.push_back(model->Evaluate(i, y));
+    for (int i = 0; i < neg.size; ++i)
+        for (int y : neg.out_edge[i])
+            n.push_back(model->Evaluate(i, y));
+    return EvaluateAveragePrecision(p, n);
+}
+
 double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer, int sample_ratio, bool normalize) {
     int dim = model->GetEmbedding(0).size();
     std::vector<const double*> vec;
@@ -93,7 +104,7 @@ double EvaluateF1(Model* model, const Label& train, const Label& test, double re
 
     double ave_f1 = 0;
     for (int a = 0; a < train.card; ++a) {
-        std::set<int> positive(test.label_instance[a].begin(), test.label_instance[a].end());
+        std::unordered_set<int> positive(test.label_instance[a].begin(), test.label_instance[a].end());
         std::uniform_int_distribution<int> dist(0, train.size - 1);
 
         std::vector<std::vector<double>> train_vec;
@@ -135,6 +146,7 @@ double EvaluateF1(Model* model, const Label& train, const Label& test, double re
                 n.push_back(label_prediction[i]);
 
         ave_f1 += EvaluateF1(p, n);
+        std::cout << "Processing " << a << "; Ave: " << ave_f1 / (a + 1) << "\n";
     }
 
     ave_f1 /= train.card;
@@ -143,6 +155,7 @@ double EvaluateF1(Model* model, const Label& train, const Label& test, double re
 
 double EvaluateF1LabelPropagation(const Graph& base, const Label& train, const Label& test) {
     double ave_f1 = 0;
+    int total = 0;
     for (int a = 0; a < test.card; ++a) {
         SingleLabel label(train.size);
         for (int i = 0; i < train.size; ++i)
@@ -153,14 +166,19 @@ double EvaluateF1LabelPropagation(const Graph& base, const Label& train, const L
 
         std::unique_ptr<Model> model(GetLabelPropagation(base, label));
         std::vector<double> p, n;
-        std::set<int> pos(test.label_instance[a].begin(), test.label_instance[a].end());
+        std::unordered_set<int> pos(test.label_instance[a].begin(), test.label_instance[a].end());
         for (int i = 0; i < test.size; ++i)
             if (pos.count(i) > 0)
                 p.push_back(model->GetEmbedding(i)[1]);
             else if (test.labeled[i])
                 n.push_back(model->GetEmbedding(i)[1]);
 
+        if (p.size() > 0)
+            total++;
+        else
+            continue;
         ave_f1 += EvaluateF1(p, n);
+        std::cout << "Processing " << total << "; Ave: " << ave_f1 / total << "\n";
     }
     ave_f1 /= test.card;
     return ave_f1;
@@ -206,5 +224,48 @@ void EvaluateAll(Model* model, const Graph& train_pos, const Graph& train_neg, c
     v = 0;
     for (int i = 0; i < train_pos.size; ++i)
         v += model->Evaluate(i, i);
+    std::cout << v << "\n";
+}
+
+void EvaluateAll(Model* model, const DGraph& train_pos, const DGraph& train_neg, const DGraph& test_pos, const DGraph& test_neg) {
+    double v, cnt;
+    std::cout << "Test Average Precision\n" << EvaluateAveragePrecision(model, test_pos, test_neg) << "\n";
+    std::cout << "Empirical Average Precision\n" << EvaluateAveragePrecision(model, train_pos, train_neg) << "\n";
+    std::cout << "Empirical Hinge Loss(Positive)\n";
+    v = cnt = 0;
+    for (int i = 0; i < train_pos.size; ++i)
+        for (int y : train_pos.out_edge[i]) {
+            v += std::max(1 - model->Evaluate(i, y), (double)0);
+            cnt++;
+        }
+    std::cout << v << " / " << cnt << "\n";
+    std::cout << "Empirical Hinge Loss(Negative)\n";
+    v = cnt = 0;
+    for (int i = 0; i < train_neg.size; ++i)
+        for (int y : train_neg.out_edge[i]) {
+            v += std::max(model->Evaluate(i, y), (double)0);
+            cnt++;
+        }
+    std::cout << v << " / " << cnt << "\n";
+    std::cout << "Test Hinge Loss(Positive)\n";
+    v = cnt = 0;
+    for (int i = 0; i < test_pos.size; ++i)
+        for (int y : test_pos.out_edge[i]) {
+            v += std::max(1 - model->Evaluate(i, y), (double)0);
+            cnt++;
+        }
+    std::cout << v << " / " << cnt << "\n";
+    std::cout << "Test Hinge Loss(Negative)\n";
+    v = cnt = 0;
+    for (int i = 0; i < test_neg.size; ++i)
+        for (int y : test_neg.out_edge[i]) {
+            v += std::max(model->Evaluate(i, y), (double)0);
+            cnt++;
+        }
+    std::cout << v << " / " << cnt << "\n";
+    std::cout << "Total L2 Norm\n";
+    v = 0;
+    for (int i = 0; i < train_pos.size; ++i)
+        v += InnerProduct(model->GetEmbedding(i).data(), model->GetEmbedding(i).data(), model->GetEmbedding(i).size());
     std::cout << v << "\n";
 }

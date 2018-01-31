@@ -87,6 +87,7 @@ Model* GetAdamicAdar(const Graph& base);
 Model* GetPredefined(const std::string& node_file, const std::string& embedding_file);
 Model* GetRandom();
 Model* GetLabelPropagation(const Graph& base, const SingleLabel& label);
+Model* GetSVD(const std::string& node_file, const std::string& u_file, const std::string& sv_file, const std::string& v_file);
 
 void SampleNegativeGraphUniform(const Graph& positive, Graph* negative);
 void SampleNegativeDGraphUniform(const DGraph& positive, DGraph* negative);
@@ -97,10 +98,13 @@ void RemoveRedundant(const DGraph& positive, DGraph* negative);
 
 double EvaluatePredictedAP(Model* model, const Graph& train, const Graph& pos, const Graph& neg, double regularizer, int sample_ratio);
 double EvaluateAveragePrecision(Model* model, const Graph& pos, const Graph& neg);
+double EvaluateAveragePrecision(Model* model, const DGraph& pos, const DGraph& neg);
 double EvaluateF1(Model* model, const Label& train, const Label& test, double regularizer, int sample_ratio, bool normalize);
 double EvaluateF1LabelPropagation(const Graph& base, const Label& train, const Label& test);
 void EvaluateAll(Model* model, const Graph& train_pos, const Graph& train_neg, const Graph& test_pos, const Graph& test_neg);
+void EvaluateAll(Model* model, const DGraph& train_pos, const DGraph& train_neg, const DGraph& test_pos, const DGraph& test_neg);
 
 void ReadDataset(const std::string& nodefile, const std::string& edgefile, Graph* graph);
+void ReadDirectedDataset(const std::string& nodefile, const std::string& edgefile, DGraph* graph);
 void ReadLabel(const std::string& nodefile, const std::string& labelfile, Label* label);
 

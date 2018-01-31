@@ -3,8 +3,9 @@
 #include "svm.h"
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
-#define EPOCHS 10
+#define EPOCHS 5
 
 class KernelEmbedding : public Model {
     int size_;
@@ -79,9 +80,14 @@ KernelEmbedding::KernelEmbedding(const Graph& graph, const Graph& negative, doub
     for (int j = 0; j < size_; ++j)
         order[j] = j;
     for (int i = 0; i < EPOCHS; ++i) {
+        int cnt = 0;
+        std::cout << "epoch " << i << "\n";
         RandomPermutation(&order);
-        for (int j : order)
+        for (int j : order) {
             UpdateEmbedding(graph, negative, j);
+            if (++cnt % 100 == 0)
+                std::cout << "executed " << cnt << "\n";
+        }
     }
 }
 

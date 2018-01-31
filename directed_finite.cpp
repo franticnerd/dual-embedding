@@ -117,7 +117,13 @@ DirectedFiniteEmbedding::DirectedFiniteEmbedding(const DGraph& graph, const DGra
         }
     }
 
-    combined_embedding.resize(size_);    for (int i = 0; i < size_; ++i) {        for (double v : in_embedding[i])            combined_embedding[i].push_back(v);        for (double v : out_embedding[i])            combined_embedding[i].push_back(v);    }
+    combined_embedding.resize(size_);
+    for (int i = 0; i < size_; ++i) {
+        for (double v : in_embedding[i])
+            combined_embedding[i].push_back(v);
+        for (double v : out_embedding[i])
+            combined_embedding[i].push_back(v);
+    }
 }
 
 double DirectedFiniteEmbedding::Evaluate(int x, int y) {

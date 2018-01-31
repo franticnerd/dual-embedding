@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -lm -pthread -Ofast -march=native -Wall -funroll-loops -Wno-unused-result -lgsl -lm -lgslcblas
-INCLUDES = -I/usr/local/include -I/Users/chao/Dropbox/Code/lib/eigen
+INCLUDES = -I/usr/local/include
 LIBS = -L/usr/local/lib
 
 

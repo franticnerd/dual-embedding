@@ -108,6 +108,71 @@ public:
     const std::vector<double>& GetEmbedding(int x) { return embedding[x]; }
 };
 
+class SVD : public Model {
+    int n_, dim_;
+    std::vector<std::vector<double>> u_;
+    std::vector<double> sv_;
+
+    void ReadVec(const std::map<std::string, int>& index_map, std::vector<std::vector<double>>* vec, const std::string& vec_file) {
+        char buffer[2500];
+        std::ifstream fin(vec_file);
+        fin.getline(buffer, 2500);
+        std::istringstream is(buffer);
+        is >> n_ >> dim_;
+
+        vec->resize(n_);
+        for (int i = 0; i < n_; ++i)
+            vec->at(i).resize(dim_, 0);
+
+        for (int i = 0; i < n_; ++i) {
+            fin.getline(buffer, 2500);
+
+            std::istringstream is2(buffer);
+            std::string word;
+            std::vector<std::string> word_vec;
+            while (is2 >> word)
+                word_vec.push_back(word);
+
+            word = "";
+            for (int j = 0; j < (int)word_vec.size() - dim_; ++j) {
+                if (j != 0) word.append(" ");
+                word.append(word_vec[j]);
+            }
+            int node_index = index_map.at(word);
+
+            for (int j = word_vec.size() - dim_; j < (int)word_vec.size(); ++j) {
+                vec->at(node_index)[j - (word_vec.size() - dim_)] = std::stod(word_vec[j]);
+            }
+        }
+
+    }
+public:
+    SVD(const std::string& node_file, const std::string& u_file, const std::string& sv_file, const std::string& v_file) {
+        std::map<std::string, int> index_map;
+        char buffer[2500];
+        int index = 0;
+
+        std::ifstream fin(node_file);
+        while (fin.getline(buffer, 256))
+            index_map[std::string(buffer)] = index++;
+
+        ReadVec(index_map, &u_, u_file);
+        //ReadVec(index_map, &v_, v_file);
+
+        std::ifstream fin2(sv_file);
+        sv_.resize(dim_);
+        for (int i = 0; i < dim_; ++i)
+            fin2 >> sv_[i];
+    }
+    double Evaluate(int x, int y) {
+        double val = 0;
+        for (int i = 0; i < dim_; ++i)
+            val += u_[x][i] * u_[x][i] * sv_[i];
+        return val;
+    }
+    const std::vector<double>& GetEmbedding(int x) { return u_[x]; }
+};
+
 Model* GetCommonNeighbor(const Graph& base, double normalizer) {
     return new CommonNeighbor(base, normalizer);
 }
@@ -122,4 +187,8 @@ Model* GetPredefined(const std::string& node_file, const std::string& embedding_
 
 Model* GetRandom() {
     return new Random();
+}
+
+Model* GetSVD(const std::string& node_file, const std::string& u_file, const std::string& sv_file, const std::string& v_file) {
+    return new SVD(node_file, u_file, sv_file, v_file);
 }
