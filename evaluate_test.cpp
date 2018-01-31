@@ -32,7 +32,7 @@ void EvaluateF1Test() {
     Graph negative(7);
     SampleNegativeGraphUniform(graph, &negative);
     RemoveRedundant(graph, &negative);
-    std::unique_ptr<Model> model(GetFiniteEmbedding(graph, negative, 5, 0.2, 1, 0));
+    std::unique_ptr<Model> model(GetFiniteEmbedding(graph, negative, 5, 0.2, 1));
     std::cout << EvaluateF1(model.get(), train, test, 1, 2, true) << "\n";
     assert(fabs(EvaluateF1(model.get(), train, test, 1, 2, true) - 1) < 0.01);
 }

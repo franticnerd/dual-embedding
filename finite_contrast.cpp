@@ -23,21 +23,19 @@ typedef std::vector<std::vector<ContrastEdgePair>> ContrastEdgeAdjacencyList;
 
 class FiniteContrastEmbedding : public Model {
     int size_, dim_;
-    const double regularizer_, deg_norm_pow_;
+    const double regularizer_;
     std::vector<std::vector<double>> embedding;
     std::vector<std::vector<double>> coeff;
     std::vector<double> sqr_norm;
 
     void UpdateEmbedding(const ContrastEdgeAdjacencyList& table, int x);
 public:
-    FiniteContrastEmbedding(const Graph& graph, const Graph& negative, int sample_ratio, int dimension, double regularizer, double deg_norm_pow);
+    FiniteContrastEmbedding(const Graph& graph, const Graph& negative, int sample_ratio, int dimension, double regularizer);
     double Evaluate(int x, int y);
     const std::vector<double>& GetEmbedding(int x) { return embedding[x]; }
 };
 
 void FiniteContrastEmbedding::UpdateEmbedding(const ContrastEdgeAdjacencyList& table, int x) {
-    double deg_norm = pow(std::max((int)table[x].size(), 1), deg_norm_pow_);
-
     std::vector<const double*> feature;
     std::vector<int> label;
     std::vector<double> margin, penalty_coeff, f_sqr_norm;
@@ -45,18 +43,17 @@ void FiniteContrastEmbedding::UpdateEmbedding(const ContrastEdgeAdjacencyList& t
         feature.push_back(embedding[pair.b].data());
         label.push_back(pair.label);
         margin.push_back(1 + pair.label * InnerProduct(embedding[pair.c].data(), embedding[pair.d].data(), dim_));
-        penalty_coeff.push_back(deg_norm / regularizer_);
+        penalty_coeff.push_back(1 / regularizer_);
         f_sqr_norm.push_back(sqr_norm[pair.b]);
     }
     LinearSVM(feature, f_sqr_norm, label, penalty_coeff, margin, &coeff[x], &embedding[x], dim_, false);
     sqr_norm[x] = InnerProduct(embedding[x].data(), embedding[x].data(), dim_);
 }
 
-FiniteContrastEmbedding::FiniteContrastEmbedding(const Graph& graph, const Graph& negative, int sample_ratio, int dimension, double regularizer, double deg_norm_pow) :
+FiniteContrastEmbedding::FiniteContrastEmbedding(const Graph& graph, const Graph& negative, int sample_ratio, int dimension, double regularizer) :
     size_(graph.size),
     dim_(dimension),
-    regularizer_(regularizer),
-    deg_norm_pow_(deg_norm_pow) {
+    regularizer_(regularizer) {
 
     std::uniform_real_distribution<double> dist_d(-1, 1);
     embedding.resize(size_);
@@ -111,6 +108,6 @@ double FiniteContrastEmbedding::Evaluate(int x, int y) {
     return InnerProduct(embedding[x].data(), embedding[y].data(), dim_);
 }
 
-Model* GetFiniteContrastEmbedding(const Graph& graph, const Graph& negative, int sample_ratio, int dimension, double regularizer, double deg_norm_pow) {
-    return new FiniteContrastEmbedding(graph, negative, sample_ratio, dimension, regularizer, deg_norm_pow);
+Model* GetFiniteContrastEmbedding(const Graph& graph, const Graph& negative, int sample_ratio, int dimension, double regularizer) {
+    return new FiniteContrastEmbedding(graph, negative, sample_ratio, dimension, regularizer);
 }

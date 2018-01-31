@@ -14,35 +14,33 @@ namespace {
 
 class FiniteEmbedding : public Model {
     int size_, dim_;
-    const double neg_penalty_, regularizer_, deg_norm_pow_;
+    const double neg_penalty_, regularizer_;
     std::vector<std::vector<double>> embedding;
     std::vector<double> sqr_norm;
     std::vector<std::vector<double>> coeff;
 
     void UpdateEmbedding(const Graph& positive, const Graph& negative, int x);
   public:
-    FiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer, double neg_norm_pow);
+    FiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer);
     double Evaluate(int x, int y);
     const std::vector<double>& GetEmbedding(int x) { return embedding[x]; }
 };
 
 void FiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negative, int x) {
-    double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), deg_norm_pow_);
-
     std::vector<const double*> feature;
     std::vector<int> label;
     std::vector<double> penalty_coeff, margin, f_sqr_norm;
     for (int i : positive.edge[x]) {
         feature.push_back(embedding[i].data());
         label.push_back(1);
-        penalty_coeff.push_back(deg_norm / regularizer_);
+        penalty_coeff.push_back(1 / regularizer_);
         margin.push_back(1);
         f_sqr_norm.push_back(sqr_norm[i]);
     }
     for (int i : negative.edge[x]) {
         feature.push_back(embedding[i].data());
         label.push_back(-1);
-        penalty_coeff.push_back(neg_penalty_ * deg_norm / regularizer_);
+        penalty_coeff.push_back(neg_penalty_ / regularizer_);
         margin.push_back(0);
         f_sqr_norm.push_back(sqr_norm[i]);
     }
@@ -50,12 +48,11 @@ void FiniteEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
     sqr_norm[x] = InnerProduct(embedding[x].data(), embedding[x].data(), dim_);
 }
 
-FiniteEmbedding::FiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer, double deg_norm_pow) :
+FiniteEmbedding::FiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer) :
     size_(graph.size),
     dim_(dimension),
     neg_penalty_(neg_penalty), 
-    regularizer_(regularizer), 
-    deg_norm_pow_(deg_norm_pow) {
+    regularizer_(regularizer) {
     
     std::uniform_real_distribution<double> dist(-1, 1);
     embedding.resize(size_);
@@ -87,6 +84,6 @@ double FiniteEmbedding::Evaluate(int x, int y) {
     return InnerProduct(embedding[x].data(), embedding[y].data(), dim_);
 }
 
-Model* GetFiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer, double deg_norm_pow) {
-    return new FiniteEmbedding(graph, negative, dimension, neg_penalty, regularizer, deg_norm_pow);
+Model* GetFiniteEmbedding(const Graph& graph, const Graph& negative, int dimension, double neg_penalty, double regularizer) {
+    return new FiniteEmbedding(graph, negative, dimension, neg_penalty, regularizer);
 }

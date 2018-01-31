@@ -15,32 +15,30 @@ struct SparseFeature {
 
 class SparseEmbedding : public Model {
     int size_;
-    const double neg_penalty_, regularizer_, deg_norm_pow_;
+    const double neg_penalty_, regularizer_;
     std::vector<std::vector<SparseFeature>> embedding;
     std::vector<std::vector<double>> coeff;
     std::vector<double> feature_buffer;
 
     void UpdateEmbedding(const Graph& positive, const Graph& negative, int x);
 public:
-    SparseEmbedding(const Graph& graph, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow);
+    SparseEmbedding(const Graph& graph, const Graph& negative, double neg_penalty, double regularizer);
     double Evaluate(int x, int y);
 };
 
 void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negative, int x) {
-    double deg_norm = pow(std::max((int)positive.edge[x].size(), 1), deg_norm_pow_);
-
     std::vector<int> label, instance;
     std::vector<double> penalty_coeff, margin;
     for (int i : positive.edge[x]) {
         instance.push_back(i);
         label.push_back(1);
-        penalty_coeff.push_back(deg_norm / regularizer_);
+        penalty_coeff.push_back(1 / regularizer_);
         margin.push_back(1);
     }
     for (int i : negative.edge[x]) {
         instance.push_back(i);
         label.push_back(-1);
-        penalty_coeff.push_back(neg_penalty_ * deg_norm / regularizer_);
+        penalty_coeff.push_back(neg_penalty_ / regularizer_);
         margin.push_back(0);
     }
 
@@ -69,11 +67,10 @@ void SparseEmbedding::UpdateEmbedding(const Graph& positive, const Graph& negati
         embedding[x][i].value = val[i];
 }
 
-SparseEmbedding::SparseEmbedding(const Graph& graph, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow) :
+SparseEmbedding::SparseEmbedding(const Graph& graph, const Graph& negative, double neg_penalty, double regularizer) :
     size_(graph.size),
     neg_penalty_(neg_penalty),
-    regularizer_(regularizer), 
-    deg_norm_pow_(deg_norm_pow) {
+    regularizer_(regularizer) {
     embedding.resize(size_);
     for (int i = 0; i < size_; ++i) {
         embedding[i].clear();
@@ -108,6 +105,6 @@ double SparseEmbedding::Evaluate(int x, int y) {
     return val;
 }
 
-Model* GetSparseEmbedding(const Graph& graph, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow) {
-    return new SparseEmbedding(graph, negative, neg_penalty, regularizer, deg_norm_pow);
+Model* GetSparseEmbedding(const Graph& graph, const Graph& negative, double neg_penalty, double regularizer) {
+    return new SparseEmbedding(graph, negative, neg_penalty, regularizer);
 }

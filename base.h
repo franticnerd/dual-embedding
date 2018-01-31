@@ -75,11 +75,12 @@ class Model {
     virtual const std::vector<double>& GetEmbedding(int x) { return null_; }
 };
 
-Model* GetFiniteEmbedding(const Graph& postive, const Graph& negative, int dimension, double neg_penalty, double regularizer, double deg_norm_pow);
+Model* GetFiniteEmbedding(const Graph& postive, const Graph& negative, int dimension, double neg_penalty, double regularizer);
+Model* GetFiniteSGD(const Graph& postive, const Graph& negative, int dimension, double neg_penalty, double regularizer);
 Model* GetSequentialFiniteEmbedding(const Graph& positive, const Graph& negative, int dimension, double neg_penalty, double regularizer);
-Model* GetFiniteContrastEmbedding(const Graph& positive, const Graph& negative, int sample_ratio, int dimension, double regularizer, double deg_norm_pow);
-Model* GetKernelEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow);
-Model* GetSparseEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer, double deg_norm_pow);
+Model* GetFiniteContrastEmbedding(const Graph& positive, const Graph& negative, int sample_ratio, int dimension, double regularizer);
+Model* GetKernelEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer);
+Model* GetSparseEmbedding(const Graph& postive, const Graph& negative, double neg_penalty, double regularizer);
 Model* GetDirectedFiniteEmbedding(const DGraph& graph, const DGraph& negative, int dimension, double neg_penalty, double regularizer);
 Model* GetDirectedFiniteContrastEmbedding(const DGraph& graph, const DGraph& negative, int sample_ratio, int dimension, double regularizer);
 Model* GetCommonNeighbor(const Graph& base, double normalizer);

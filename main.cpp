@@ -57,7 +57,23 @@ struct EvaluateConfig {
 void EvalFiniteEmbedding(const EvaluateConfig& config) {
     std::unique_ptr<Model> model;
     std::cout << "Training Finite Embedding\n";
-    model.reset(GetFiniteEmbedding(config.train, config.neg_train, config.finite_dim, config.finite_neg_penalty, config.finite_regularizer, 0));
+    model.reset(GetFiniteEmbedding(config.train, config.neg_train, config.finite_dim, config.finite_neg_penalty, config.finite_regularizer));
+    if (config.predict_edge) {
+        std::cout << "Evaluating Link Prediction\n";
+        EvaluateAll(model.get(), config.train, config.neg_train, config.test, config.neg_test);
+        //std::cout << "Predicted AP: " << EvaluatePredictedAP(model.get(), config.train, config.test, config.neg_test, config.link_svm_regularizer, config.link_svm_sample_ratio) << "\n";
+    }
+    if (config.predict_label) {
+        std::cout << "Evaluating Label Prediction\n";
+        std::cout << "Average F1:" << EvaluateF1(model.get(), config.train_label, config.test_label, config.svm_regularizer, config.svm_sample_ratio, config.vec_normalize) << "\n";
+        //std::cout << "Average F1 (Train):" << EvaluateF1(model.get(), config.train_label, config.train_label, config.svm_regularizer, config.svm_sample_ratio) << "\n";
+    }
+}
+
+void EvalFiniteSGD(const EvaluateConfig& config) {
+    std::unique_ptr<Model> model;
+    std::cout << "Training Finite SGD\n";
+    model.reset(GetFiniteSGD(config.train, config.neg_train, config.finite_dim, config.finite_neg_penalty, config.finite_regularizer));
     if (config.predict_edge) {
         std::cout << "Evaluating Link Prediction\n";
         EvaluateAll(model.get(), config.train, config.neg_train, config.test, config.neg_test);
@@ -73,7 +89,7 @@ void EvalFiniteEmbedding(const EvaluateConfig& config) {
 void EvalFiniteContrastEmbedding(const EvaluateConfig& config) {
     std::unique_ptr<Model> model;
     std::cout << "Training Finite Contrast Embedding\n";
-    model.reset(GetFiniteContrastEmbedding(config.train, config.neg_train, config.finite_contrast_sample_ratio, config.finite_contrast_dim, config.finite_contrast_regularizer, 0));
+    model.reset(GetFiniteContrastEmbedding(config.train, config.neg_train, config.finite_contrast_sample_ratio, config.finite_contrast_dim, config.finite_contrast_regularizer));
     if (config.predict_edge) {
         std::cout << "Evaluating Link Prediction\n";
         EvaluateAll(model.get(), config.train, config.neg_train, config.test, config.neg_test);
@@ -117,7 +133,7 @@ void EvalDirectedFiniteContrastEmbedding(const EvaluateConfig& config) {
 void EvalKernelEmbedding(const EvaluateConfig& config) {
     std::unique_ptr<Model> model;
     std::cout << "Training Kernel Embedding\n";
-    model.reset(GetKernelEmbedding(config.train, config.neg_train, config.kernel_neg_penalty, config.kernel_regularizer, 0));
+    model.reset(GetKernelEmbedding(config.train, config.neg_train, config.kernel_neg_penalty, config.kernel_regularizer));
     if (config.predict_edge) {
         std::cout << "Evaluating Link Prediction\n";
         EvaluateAll(model.get(), config.train, config.neg_train, config.test, config.neg_test);
@@ -128,7 +144,7 @@ void EvalSparseEmbedding(const EvaluateConfig& config) {
     std::unique_ptr<Model> model;
     Graph neg_empty(config.train.size);
     std::cout << "Training Sparse Embedding\n";
-    model.reset(GetSparseEmbedding(config.train, neg_empty, config.sparse_neg_penalty, config.sparse_regularizer, 0));
+    model.reset(GetSparseEmbedding(config.train, neg_empty, config.sparse_neg_penalty, config.sparse_regularizer));
     if (config.predict_edge) {
         std::cout << "Evaluating Link Prediction\n";
         EvaluateAll(model.get(), config.train, config.neg_train, config.test, config.neg_test);
@@ -282,7 +298,8 @@ int main() {
     RemoveRedundant(config.train, &config.neg_test);
     RemoveRedundant(config.test, &config.neg_test);
 
-    EvalFiniteEmbedding(config);
+    //EvalFiniteEmbedding(config);
+    EvalFiniteSGD(config);
     //EvalFiniteContrastEmbedding(config);
     //EvalKernelEmbedding(config);
     //EvalSparseEmbedding(train, neg_empty, test, neg_test);
