@@ -30,7 +30,6 @@ void SampleNegativeDGraphUniform(const DGraph& positive, DGraph* negative) {
             if (targetA != targetB)
                 negative->AddEdge(targetA, targetB);
         }
-
 }
 
 void SampleNegativeGraphPreferential(const Graph& positive, Graph* negative, double p) {
